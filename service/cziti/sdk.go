@@ -18,7 +18,7 @@
 package cziti
 
 /*
-#cgo windows LDFLAGS: -l libziti.imp -luv -lws2_32 -lpsapi
+#cgo windows LDFLAGS: -l libziti.imp -luv -lws2_32 -lpsapi -limagehlp
 
 #include <stdlib.h>
 
@@ -622,4 +622,15 @@ func getTunneledServiceAddresses(ts *C.tunneled_service_t) []dto.Address {
 		}
 	}
 	return values
+}
+
+func AttachSignalHandler() {
+	var pgmName string
+	if len(os.Args) > 0 {
+		pgmName = os.Args[0]
+	}
+	if pgmName != "" {
+		cstr := C.CString(pgmName)
+		C.set_signal_handler(cstr)
+	}
 }

@@ -26,21 +26,22 @@
 #include <ziti/ziti_events.h>
 #include <uv.h>
 
-
-typedef struct cziti_ctx_s {
+typedef struct cziti_ctx_s
+{
     ziti_options opts;
     ziti_context nf;
     uv_async_t async;
 } cziti_ctx;
 
-typedef struct libuv_ctx_s {
+typedef struct libuv_ctx_s
+{
     uv_loop_t *l;
     uv_thread_t t;
     uv_async_t stopper;
 } libuv_ctx;
 
 //utility type C functions
-char* ziti_char_array_get(char** arr, int idx);
+char *ziti_char_array_get(char **arr, int idx);
 
 void libuv_stopper(uv_async_t *a);
 void libuv_init(libuv_ctx *lctx);
@@ -51,7 +52,7 @@ void libuv_stop(libuv_ctx *lctx);
 void set_log_out(intptr_t h, libuv_ctx *lctx);
 void set_log_level(int level, libuv_ctx *lctx);
 
-const char** all_configs;
+const char **all_configs;
 
 //posture check functions
 void ziti_pq_domain_go(ziti_context ztx, char *id, ziti_pr_domain_cb response_cb);
@@ -66,13 +67,13 @@ void log_writer_cb(int level, char *loc, char *msg, int msglen);
 void ziti_dump_go_to_file_cb(char *outputPath, char *line);
 void ziti_dump_go_to_log_cb(void *stringsBuffer, char *line);
 
-bool is_null(void* anything);
+bool is_null(void *anything);
 
-struct ziti_context_event* ziti_event_context_event(ziti_event_t *ev);
-struct ziti_router_event* ziti_event_router_event(ziti_event_t *ev);
-struct ziti_service_event* ziti_event_service_event(ziti_event_t *ev);
+struct ziti_context_event *ziti_event_context_event(ziti_event_t *ev);
+struct ziti_router_event *ziti_event_router_event(ziti_event_t *ev);
+struct ziti_service_event *ziti_event_service_event(ziti_event_t *ev);
 
-ziti_service* ziti_service_array_get(ziti_service_array arr, int idx);
+ziti_service *ziti_service_array_get(ziti_service_array arr, int idx);
 
 void ziti_dump_go(char *msg);
 
@@ -86,4 +87,5 @@ void ziti_dump_go(char *msg);
 //void ziti_mfa_ar_cb(ziti_context ztx, void *mfa_ctx, int status);
 //void ziti_ar_mfa_status_cb_go(ziti_context ztx, void *mfa_ctx, int status, char *fingerprint);
 
+void set_signal_handler(char *programName);
 #endif /* GOLANG_SDK_H */
