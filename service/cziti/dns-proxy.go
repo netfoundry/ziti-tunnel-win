@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/miekg/dns"
 	"github.com/openziti/desktop-edge-win/service/windns"
+	"github.com/openziti/desktop-edge-win/service/ziti-tunnel/util/recovery"
 	"io"
 	"net"
 	"os"
@@ -133,6 +134,8 @@ func RunDNSserver(dnsBind []net.IP, ready chan bool) {
 }
 
 func runListener(ip *net.IP, port int, reqch chan dnsreq) {
+	defer recovery.TunnelPanic()
+
 	laddr := &net.UDPAddr{
 		IP:   *ip,
 		Port: port,
@@ -245,6 +248,7 @@ func dnsPanicRecover(localDnsServers []net.IP, now time.Time) {
 }
 
 func runDNSproxy(upstreamDnsServers []string, localDnsServers []net.IP) {
+	defer recovery.TunnelPanic()
 	windns.FlushDNS() //do this in case the services come back in different order and the ip returned is no longer the same
 	log.Infof("starting DNS proxy upstream: %v, local: %v", upstreamDnsServers, localDnsServers)
 	domains = windns.GetConnectionSpecificDomains()
@@ -307,6 +311,7 @@ outer:
 	for _, proxy := range dnsUpstreams {
 		log.Debugf("beginning DNS proxy for: %s", proxy.RemoteAddr().String())
 		go func(p *net.UDPConn) {
+			defer recovery.TunnelPanic()
 			resp := make([]byte, 1024) //make a buffer which is reused
 			for {
 				n, err := p.Read(resp)
