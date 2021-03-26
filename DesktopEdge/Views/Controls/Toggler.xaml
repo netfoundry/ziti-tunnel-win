@@ -5,7 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ZitiDesktopEdge"
              mc:Ignorable="d" 
-             d:DesignHeight="20" d:DesignWidth="35" Width="35" Height="20" Padding="0,0,0,0" Loaded="OnLoad">
+             d:DesignHeight="20" 
+             d:DesignWidth="35" 
+             Width="35" 
+             Height="20" 
+             Padding="0,0,0,0" 
+             Loaded="OnLoad">
     <StackPanel Orientation="Vertical" Margin="0,0,0,0">
         <Canvas Name="LayoutRoot" Cursor="Hand" MouseUp="OnToggle">
             <Canvas.Resources>

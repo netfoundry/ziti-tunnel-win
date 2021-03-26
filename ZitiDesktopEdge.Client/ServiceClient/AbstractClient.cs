@@ -19,6 +19,7 @@ namespace ZitiDesktopEdge.ServiceClient {
         public event EventHandler<object> OnClientDisconnected;
         public event EventHandler<StatusEvent> OnShutdownEvent;
         public event EventHandler<object> OnReconnectFailure;
+        public virtual event EventHandler<Exception> OnCommunicationError;
 
         protected NamedPipeClientStream pipeClient = null;
         protected NamedPipeClientStream eventClient = null;
@@ -89,6 +90,10 @@ namespace ZitiDesktopEdge.ServiceClient {
             OnReconnectFailure?.Invoke(this, e);
         }
 
+        protected virtual void CommunicationError(Exception e) {
+            OnCommunicationError(this, e);
+        }
+
         async protected Task sendAsync(object objToSend) {
             bool retried = false;
             while (true) {
@@ -96,15 +101,10 @@ namespace ZitiDesktopEdge.ServiceClient {
                     string toSend = JsonConvert.SerializeObject(objToSend, Formatting.None);
 
                     if (toSend?.Trim() != null) {
-                        debugServiceCommunication("===============  sending message =============== ");
                         debugServiceCommunication(toSend);
                         await ipcWriter.WriteAsync(toSend);
                         await ipcWriter.WriteAsync('\n');
-                        debugServiceCommunication("=============== flushing message =============== ");
                         await ipcWriter.FlushAsync();
-                        debugServiceCommunication("===============     sent message =============== ");
-                        debugServiceCommunication("");
-                        debugServiceCommunication("");
                     } else {
                         Logger.Debug("NOT sending empty object??? " + objToSend?.ToString());
                     }
@@ -165,11 +165,11 @@ namespace ZitiDesktopEdge.ServiceClient {
                         } else {
                             //ClientDisconnected(null);
                         }
-                    } catch {
+                    } catch (Exception e) {
                         try {
                             ReconnectFailureEvent("reconnect failure");
-                        } catch {
-
+                        } catch (Exception ex){
+                            // don't care - just catch it and continue... it's a timeout...
                         }
                         var now = DateTime.Now;
                         if (now > logAgainAfter) {
@@ -191,7 +191,11 @@ namespace ZitiDesktopEdge.ServiceClient {
         }
 
         protected void debugServiceCommunication(string msg) {
+#if DEBUG
+            Logger.Debug(msg);
+#else
             Logger.Trace(msg);
+#endif
         }
 
         async protected Task<T> readAsync<T>(StreamReader reader) where T : SvcResponse {
@@ -204,17 +208,13 @@ namespace ZitiDesktopEdge.ServiceClient {
             try {
                 int emptyCount = 1; //just a stop gap in case something crazy happens in the communication
 
-                debugServiceCommunication("==============a  reading message =============== ");
                 string respAsString = await reader.ReadLineAsync();
                 debugServiceCommunication(respAsString);
-                debugServiceCommunication("===============     read message =============== ");
                 while (string.IsNullOrEmpty(respAsString?.Trim())) {
                     debugServiceCommunication("Received empty payload - continuing to read until a payload is received");
                     //now how'd that happen...
-                    debugServiceCommunication("==============b  reading message =============== ");
                     respAsString = await reader.ReadLineAsync();
                     debugServiceCommunication(respAsString);
-                    debugServiceCommunication("===============     read message =============== ");
                     emptyCount++;
                     if (emptyCount > 5) {
                         Logger.Debug("are we there yet? " + reader.EndOfStream);
@@ -222,8 +222,6 @@ namespace ZitiDesktopEdge.ServiceClient {
                         return null;
                     }
                 }
-                debugServiceCommunication("");
-                debugServiceCommunication("");
                 return respAsString;
             } catch (IOException ioe) {
                 //almost certainly a problem with the pipe

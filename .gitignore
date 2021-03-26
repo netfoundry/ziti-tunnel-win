@@ -272,3 +272,5 @@ WinSign.p12
 *.p12
 *.pfx
 *.pem
+ADV_INST_KEY.key
+WinSign.b64

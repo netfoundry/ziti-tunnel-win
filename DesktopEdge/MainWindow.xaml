@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ZitiDesktopEdge"
+        xmlns:debug="clr-namespace:Ziti.Desktop.Edge.Views.Screens"
         xmlns:i="clr-namespace:Lada.Windows.Input;assembly=WpfMouseWheelLib"
         mc:Ignorable="d"
         ShowInTaskbar="False"
@@ -17,7 +18,9 @@
         i:MouseWheel.LogicalScrollDebouncing="Auto"
         i:MouseWheel.LogicalScrollIncrement="1"
         i:MouseWheel.ScrollMode="Auto"
-        WindowStyle="None" Loaded="MainWindow_Loaded" Background="#000F0F23">
+        WindowStyle="None" Loaded="MainWindow_Loaded" Background="#000F0F23"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        >
     <Window.Resources>
         <Style TargetType="Image">
             <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
@@ -118,7 +121,7 @@
         </Canvas>
         <Border Margin="10,10,10,10" Name="UIBorder" BorderBrush="Black" BorderThickness="8" CornerRadius="10">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="20" Direction="1" RenderingBias="Quality" ShadowDepth="1" Opacity="1"/>
+                <DropShadowEffect BlurRadius="15" Direction="1" RenderingBias="Quality" ShadowDepth="1" Opacity="1"/>
             </Border.Effect>
         </Border>
         <Rectangle Margin="10,10,10,10" Name="BgColor" Stroke="Black" RadiusY="10" RadiusX="10" ClipToBounds="True">
@@ -195,12 +198,12 @@
                         <Image Grid.Column="1" Source="/Assets/Images/up.png" Width="20" HorizontalAlignment="Left" Height="20"></Image>
                     </Grid>
                     <Label Name="UploadSpeed" Margin="0,-16,0,0" Foreground="#FF0047" Content="0" FontSize="40" HorizontalAlignment="Center" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" />
-                    <Label Name="UploadSpeedLabel" MouseUp="UploadSpeedLabel_MouseUp" Foreground="White" Margin="0,-20,0,30" Content="KBps" FontSize="11" HorizontalAlignment="Center" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" />
+                    <Label Name="UploadSpeedLabel" Foreground="White" Margin="0,-20,0,30" Content="KBps" FontSize="11" HorizontalAlignment="Center" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" />
                 </StackPanel>
             </Grid>
 
             <ScrollViewer Name="IdListScroller" MinHeight="60" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto" CanContentScroll="True" ClipToBounds="True" PanningMode="VerticalOnly" PanningRatio=".1">
-                <StackPanel Name="IdList" Orientation="Vertical" IsItemsHost="False" LayoutUpdated="IdList_LayoutUpdated"></StackPanel>
+                <StackPanel Name="IdList" Orientation="Vertical" IsItemsHost="False" LayoutUpdated="IdList_LayoutUpdated" FocusVisualStyle="{x:Null}"></StackPanel>
             </ScrollViewer>
             <Grid HorizontalAlignment="Stretch" Margin="0,20,0,10" Width="Auto">
                 <Grid.ColumnDefinitions>
@@ -209,11 +212,19 @@
                 <Label Name="AddIdButton" Padding="0,0,0,20" Grid.Column="0" Margin="0,0,0,20" Content="Add Identity" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="#0069FF" FontSize="16" Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center" MouseDown="AddIdentity"></Label>
             </Grid>
         </StackPanel>
-        
-        
+        <!-- Form for debugging -->
+        <debug:Debugging x:Name="DebugForm" Visibility="Collapsed" />
+        <!-- Menu UI -->
         <local:MainMenu x:Name="MainMenu" Visibility="Collapsed"></local:MainMenu>
-        <local:IdentityDetails x:Name="IdentityMenu" Visibility="Collapsed"></local:IdentityDetails>
+        <!-- ID Detail UI -->
+        <local:IdentityDetails x:Name="IdentityMenu" Visibility="Collapsed" OnMFAToggled="MFAToggled" Authenticate="ShowAuthenticate" Recovery="ShowRecovery"></local:IdentityDetails>
 
+        <!-- Modal Background -->
+        <Rectangle x:Name="ModalBg" Margin="10,10,10,10" Fill="Black" RadiusY="10" RadiusX="10" Opacity="0" Visibility="Collapsed"></Rectangle>
+        <!-- MFA Setup Prompt -->
+        <local:MFAScreen x:Name="MFASetup" Visibility="Collapsed" Margin="0,0,0,0" OnClose="DoClose"></local:MFAScreen>
+
+        <!-- Small messages screen that opens at the bottom -->
         <Grid x:Name="BlurbArea" Visibility="Collapsed" Height="80" Margin="0,500,0,0" VerticalAlignment="Bottom">
             <Border Margin="10,10,10,10" BorderBrush="Black" BorderThickness="8" CornerRadius="10">
                 <Border.Effect>
@@ -355,4 +366,7 @@
             </Grid>
         </Grid>
     </Grid>
+    <Window.InputBindings>
+        <KeyBinding x:Name="ShowDebug" Command="{Binding SomeCommand}" Key="F12" />
+    </Window.InputBindings>
 </Window>

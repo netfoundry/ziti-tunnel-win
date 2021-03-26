@@ -6,9 +6,9 @@
              xmlns:local="clr-namespace:ZitiDesktopEdge"
              mc:Ignorable="d" 
              d:DesignHeight="64" d:DesignWidth="375" Height="64">
-    <Canvas MouseEnter="Canvas_MouseEnter" MouseLeave="Canvas_MouseLeave">
+    <Canvas Name="MainArea" MouseEnter="Canvas_MouseEnter" MouseLeave="Canvas_MouseLeave">
         <Rectangle Fill="#0F0C28" HorizontalAlignment="Left" Stroke="Black" VerticalAlignment="Top" ClipToBounds="True"></Rectangle>
-        <Rectangle Name="OverState" Fill="#FFFFFF" Height="64" Width="400" Opacity="0" ClipToBounds="True" Cursor="Hand"></Rectangle> 
+        <Rectangle Name="OverState" Fill="#FFFFFF" Height="64" Width="400" Opacity="0" ClipToBounds="True"></Rectangle>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -18,25 +18,26 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="70"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="60"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="20"/>
                 </Grid.RowDefinitions>
                 <local:Toggler x:Name="ToggleSwitch" Grid.Column="0" Grid.Row="0" Margin="0,10,0,0"></local:Toggler>
-                <Label Name="ToggleStatus" Cursor="Hand" Grid.Column="0" Grid.Row="1" Margin="0,-5,0,0" Content="Enabled" Foreground="White" FontSize="11" Typography.Capitals="AllSmallCaps" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"></Label>
-                <Label Name="IdName" Cursor="Hand" MouseUp="OpenDetails" MaxWidth="230" Grid.Column="1" Margin="0,6,0,0" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" FontSize="18" Foreground="White" HorizontalAlignment="Left">
+                <Label Name="ToggleStatus" Grid.Column="0" Grid.Row="1" Margin="0,-5,0,0" Content="Enabled" Foreground="White" FontSize="11" Typography.Capitals="AllSmallCaps" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"></Label>
+                <Label Name="IdName" Cursor="Hand" MouseUp="OpenDetails" MaxWidth="230" VerticalAlignment="Bottom" Grid.Column="1" Margin="0,6,0,0" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" FontSize="16" Foreground="White" HorizontalAlignment="Left">
                     <TextBlock TextTrimming="CharacterEllipsis">Identity Name</TextBlock>
                 </Label>
                 <Label Name="IdUrl" Cursor="Hand" MouseUp="OpenDetails" MaxWidth="180" MinWidth="230" Grid.Column="1" Grid.Row="1" FontSize="11" Margin="0,-5,0,0" Typography.Capitals="AllSmallCaps" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="White" HorizontalAlignment="Left">
                     <TextBlock TextTrimming="CharacterEllipsis">https://serverUrlThisShouldTrimIfItsLong:8080</TextBlock>
                 </Label>
-                <Canvas Grid.Column="2" Grid.Row="0" Width="50" Height="40" MouseUp="OpenDetails" Cursor="Hand">
+                <Image Name="MfaRequired" Source="/Assets/Images/mfaoff.png" Grid.Column="2" Cursor="Hand" Width="50" Height="20" VerticalAlignment="Bottom" RenderOptions.BitmapScalingMode="Fant" Stretch="Uniform" Visibility="Visible" MouseUp="MFAAuthenticate"></Image>
+                <Canvas Name="ServiceCountArea" Grid.Column="2" Grid.Row="0" Width="50" Height="40" MouseUp="OpenDetails" Cursor="Hand" Visibility="Collapsed">
                     <Border Width="44" Height="26" Background="#0068F9" CornerRadius="12" Canvas.Top="10" Canvas.Left="3"></Border>
                     <Label Name="ServiceCount" Width="50" Height="26" Canvas.Top="9" Padding="0,0,0,0" FontSize="17" Content="23" Foreground="White" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"></Label>
                 </Canvas>
-                <Label Grid.Column="3" MouseUp="OpenDetails" Grid.Row="1" Margin="0,-5,0,0" Content="Services" Cursor="Hand" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Typography.Capitals="AllSmallCaps" HorizontalContentAlignment="Center"></Label>
+                <Label Name="ServiceCountAreaLabel" Grid.Column="3" MouseUp="OpenDetails" Grid.Row="1" Margin="0,-5,0,0" Content="authorize" Cursor="Hand" Foreground="White" FontSize="11" HorizontalAlignment="Stretch" Typography.Capitals="AllSmallCaps" HorizontalContentAlignment="Center"></Label>
             </Grid>
             <Image Grid.Column="1" Source="/Assets/Images/next.png" Width="12" MouseUp="OpenDetails" Cursor="Hand"></Image>
         </Grid>

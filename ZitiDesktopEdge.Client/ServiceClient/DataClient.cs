@@ -127,6 +127,7 @@ namespace ZitiDesktopEdge.ServiceClient {
         ServiceFunction AddIdentityFunction = new ServiceFunction() { Function = "AddIdentity" };
 
         async public Task<Identity> AddIdentityAsync(string identityName, bool activate, string jwt) {
+            IdentityResponse resp = null;
             try {
                 Identity id = new Identity {
                     Active = activate,
@@ -142,19 +143,21 @@ namespace ZitiDesktopEdge.ServiceClient {
 
                 await sendAsync(AddIdentityFunction);
                 await sendAsync(newId);
-                var resp = await readAsync<IdentityResponse>(ipcReader);
+                resp = await readAsync<IdentityResponse>(ipcReader);
                 Logger.Debug(resp.ToString());
-                if (resp.Code != 0) {
-                    throw new ServiceException(resp.Message, resp.Code, resp.Error);
-                }
-                return resp.Payload;
             } catch (Exception ex) {
                 //almost certainly a problem with the pipe - recreate the pipe...
                 //setupPipe();
                 //throw;
                 Logger.Error(ex, "Unexpected error");
+                CommunicationError(ex);
+                throw ex;
             }
-            return null;
+            if (resp?.Code != 0) {
+                Logger.Warn("failed to enroll. {0} {1}", resp.Message, resp.Error);
+                throw new ServiceException("Failed to Enroll", resp.Code, "The provided token was invalid. This usually is because the token has already been used or it has expired.");
+            }
+            return resp.Payload;
         }
 
 
@@ -176,6 +179,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //setupPipe();
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return;
         }
@@ -190,6 +194,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //setupPipe();
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return;
         }
@@ -204,6 +209,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //setupPipe();
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return;
         }
@@ -218,6 +224,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //setupPipe();
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return null;
         }
@@ -231,6 +238,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //almost certainly a problem with the pipe - recreate the pipe...
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return null;
         }
@@ -244,6 +252,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //almost certainly a problem with the pipe - recreate the pipe...
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return null;
         }
@@ -257,6 +266,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //almost certainly a problem with the pipe - recreate the pipe...
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return null;
         }
@@ -270,6 +280,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //almost certainly a problem with the pipe - recreate the pipe...
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return null;
         }
@@ -283,6 +294,20 @@ namespace ZitiDesktopEdge.ServiceClient {
                 //almost certainly a problem with the pipe - recreate the pipe...
                 //throw ioe;
                 Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
+            }
+            return null;
+        }
+        async public Task<SvcResponse> RemoveMFA(string fingerprint, string totp) {
+            try {
+                await sendAsync(new RemoveMFAFunction(fingerprint, totp));
+                SvcResponse mfa = await readAsync<SvcResponse>(ipcReader);
+                return mfa;
+            } catch (Exception ioe) {
+                //almost certainly a problem with the pipe - recreate the pipe...
+                //throw ioe;
+                Logger.Error(ioe, "Unexpected error");
+                CommunicationError(ioe);
             }
             return null;
         }
@@ -303,6 +328,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                         }
                         break;
                     case "status": //break here to see status on startup
+                        //dbg comment Logger.Warn("STATUS EVENT: \n" + respAsString);
                         TunnelStatusEvent tse = serializer.Deserialize<TunnelStatusEvent>(jsonReader);
 
                         if (tse != null) {
@@ -310,6 +336,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                         }
                         break;
                     case "identity":
+                        //dbg comment Logger.Warn("IDENTITY EVENT: \n" + respAsString);
                         IdentityEvent id = serializer.Deserialize<IdentityEvent>(jsonReader);
 
                         if (id != null) {
@@ -317,6 +344,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                         }
                         break;
                     case "service":
+                        //dbg comment Logger.Warn("SERVICE EVENT: \n" + respAsString);
                         ServiceEvent svc = serializer.Deserialize<ServiceEvent>(jsonReader);
 
                         if (svc != null) {
@@ -337,6 +365,7 @@ namespace ZitiDesktopEdge.ServiceClient {
                         ShutdownEvent(se);
                         break;
                     case "mfa":
+                        //dbg comment Logger.Warn("MFA EVENT: \n" + respAsString);
                         Logger.Debug("mfa event received");
                         MfaEvent mfa = serializer.Deserialize<MfaEvent>(jsonReader);
                         MfaEvent(mfa);

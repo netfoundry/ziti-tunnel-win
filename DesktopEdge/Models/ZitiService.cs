@@ -1,17 +1,30 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ZitiDesktopEdge.DataStructures;
+
 namespace ZitiDesktopEdge.Models {
 	public class ZitiService {
+		private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
 		public string Name { get; set; }
 		public string[] Protocols { get; set; }
-		public ZitiDesktopEdge.DataStructures.Address[] Addresses { get; set; }
-		public ZitiDesktopEdge.DataStructures.PortRange[] Ports { get; set; }
+		public Address[] Addresses { get; set; }
+		public PortRange[] Ports { get; set; }
+		public PostureCheck[] PostureChecks { get; set; }
 		public bool OwnsIntercept { get; set; }
 		public string AssignedIP { get; set; }
+
+		private bool failingPostureCheck;
+		public bool HasFailingPostureCheck() {
+			return failingPostureCheck;
+		}
+		public bool IsAccessable { get; set; }
+
 		public string Warning {
 			get {
 				if (this.OwnsIntercept) {
@@ -25,14 +38,19 @@ namespace ZitiDesktopEdge.Models {
 		public ZitiService() {
 		}
 
-		public ZitiService(ZitiDesktopEdge.DataStructures.Service svc) {
+		public ZitiService(Service svc) {
 			this.Name = svc.Name;
 			this.AssignedIP = svc.AssignedIP;
 			this.Addresses = svc.Addresses;
 			this.Protocols = svc.Protocols == null ? null : svc.Protocols.Select(p => p.ToUpper()).ToArray();
 			this.Ports = svc.Ports;
-
+			this.PostureChecks = svc.PostureChecks;
 			this.OwnsIntercept = svc.OwnsIntercept;
+			if (this.PostureChecks != null) {
+				this.failingPostureCheck = this.PostureChecks.Any(p => !p.IsPassing);
+			}
+			this.IsAccessable = svc.IsAccessable;
+			//commented out for now logger.Warn("SERVICE: " + this.Name + " HAS FAILING POSTURE CHECK: " + failingPostureCheck);
 		}
 
 

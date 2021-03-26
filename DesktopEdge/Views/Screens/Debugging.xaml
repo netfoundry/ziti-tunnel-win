@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="Ziti.Desktop.Edge.Views.Screens.Debugging"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:Ziti.Desktop.Edge.Views.Screens"
+      mc:Ignorable="d" 
+        MaxWidth="320"
+      d:DesignHeight="450" d:DesignWidth="400" IsVisibleChanged="UserControl_IsVisibleChanged"
+>
+    <StackPanel>
+        <Expander Header="MFA" Background="AliceBlue">
+            <StackPanel Background="AliceBlue">
+                <Button x:Name="btn1" Content="Add Fingerprint and click to enable mfa" Click="btn1_Click"/>
+                <TextBox x:Name="FingerPrint"/>
+                <TextBox x:Name="MfaActionOp"/>
+                <TextBox x:Name="MfaIsVerified"/>
+                <TextBox x:Name="MfaProvisioningUrl"/>
+                <TextBox x:Name="MfaRecoveryCodes"/>
+                <Line></Line>
+                <TextBox x:Name="TheMFACode"/>
+                <Button x:Name="btn2" Content="Click to verify enrollment" Click="btn2_Click"/>
+                <Button x:Name="btn3" Content="Click to Authorize" Click="btn3_Click"/>
+                <Button x:Name="btn4" Content="Click to remove mfa" Click="btn4_Click"/>
+                <Button x:Name="btn5" Content="Click to return codes" Click="btn5_Click"/>
+                <Button x:Name="btn6" Content="Click to generate codes" Click="btn6_Click"/>
+            </StackPanel>
+        </Expander>
+    </StackPanel>
+</UserControl>

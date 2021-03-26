@@ -20,6 +20,7 @@ package service
 import (
 	"bufio"
 	"crypto/sha1"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"github.com/Microsoft/go-winio"
@@ -262,6 +263,27 @@ func (p *Pipes) shutdownConnections() {
 }
 
 func initialize(cLogLevel int) error {
+	//TODO: this all needs to be cleaned up. it's done it two places and redundant
+	//TODO: fix with mfa?
+	ipv4 := rts.state.TunIpv4
+	ipv4mask := rts.state.TunIpv4Mask
+	if strings.TrimSpace(ipv4) == "" {
+		log.Infof("ip not provided using default: %v", ipv4)
+		ipv4 = constants.Ipv4ip
+		rts.UpdateIpv4(ipv4)
+	}
+	if ipv4mask < constants.Ipv4MaxMask {
+		log.Warnf("provided mask is too large: %d using default: %d", ipv4mask, constants.Ipv4DefaultMask)
+		ipv4mask = constants.Ipv4DefaultMask
+		rts.UpdateIpv4Mask(ipv4mask)
+	}
+	_, ipnet, err := net.ParseCIDR(fmt.Sprintf("%s/%d", ipv4, ipv4mask))
+	if err != nil {
+		return fmt.Errorf("error parsing CIDR block: (%v)", err)
+	}
+	dnsIpAsUint32 := binary.BigEndian.Uint32(ipnet.IP)
+	cziti.InitTunnelerDns(dnsIpAsUint32, len(ipnet.Mask))
+
 	assignedIp, t, err := rts.CreateTun(rts.state.TunIpv4, rts.state.TunIpv4Mask)
 	if err != nil {
 		return err
@@ -302,7 +324,7 @@ func setTunInfo(s *dto.TunnelStatus) {
 
 	if strings.TrimSpace(ipv4) == "" {
 		ipv4 = constants.Ipv4ip
-		log.Infof("ip not provided using default: %v", ipv4)
+		log.Infof("ip not provided in config file. using default: %v", ipv4)
 		rts.UpdateIpv4(ipv4)
 	}
 	if ipv4mask < constants.Ipv4MaxMask || ipv4mask > constants.Ipv4MinMask {
@@ -314,6 +336,16 @@ func setTunInfo(s *dto.TunnelStatus) {
 	if err != nil {
 		log.Errorf("error parsing CIDR block: (%v)", err)
 		return
+	}
+
+	carrierGradeNetworkRange := fmt.Sprintf("%s/%d", constants.Ipv4ip, 10)
+	_, cgsubnet, _ := net.ParseCIDR(carrierGradeNetworkRange)
+
+	if !cgsubnet.Contains(ipnet.IP) {
+		log.Warnf("============================================================================")
+		log.Warnf("the ip provided [%s] is NOT in the expected CIDR range of %s", ipv4, carrierGradeNetworkRange)
+		log.Warnf("this can cause unintented consequences. Please update the ip to one in the specified range.")
+		log.Warnf("============================================================================")
 	}
 
 	t := *rts.tun
@@ -399,21 +431,21 @@ func serveIpc(conn net.Conn) {
 	enc := json.NewEncoder(writer)
 
 	for {
-		log.Debug("ipc read begins")
-		msg, err := reader.ReadString('\n')
-		log.Debug("ipc read ends")
-		if err != nil {
-			if err != winio.ErrFileClosed {
-				if err == io.EOF {
+		log.Trace("ipc read begins")
+		msg, readErr := reader.ReadString('\n')
+		log.Trace("ipc read ends")
+		if readErr != nil {
+			if readErr != winio.ErrFileClosed {
+				if readErr == io.EOF {
 					log.Debug("pipe closed. client likely disconnected")
 				} else {
-					log.Errorf("unexpected error while reading line. %v", err)
+					log.Errorf("unexpected error while reading line. %v", readErr)
 
 					//try to respond... likely won't work but try...
-					respondWithError(enc, "could not read line properly! exiting loop!", UNKNOWN_ERROR, err)
+					respondWithError(enc, "could not read line properly! exiting loop!", UNKNOWN_ERROR, readErr)
 				}
 			}
-			log.Debugf("connection closed due to shutdown request for ipc: %v", err)
+			log.Debugf("connection closed due to shutdown request for ipc: %v", readErr)
 			return
 		}
 
@@ -427,20 +459,20 @@ func serveIpc(conn net.Conn) {
 
 		dec := json.NewDecoder(strings.NewReader(msg))
 		var cmd dto.CommandMsg
-		if err := dec.Decode(&cmd); err == io.EOF {
+		if cmdErr := dec.Decode(&cmd); cmdErr == io.EOF {
 			break
-		} else if err != nil {
-			log.Fatal(err)
+		} else if cmdErr != nil {
+			log.Fatal(cmdErr)
 		}
 
 		switch cmd.Function {
 		case "AddIdentity":
-			addIdMsg, err := reader.ReadString('\n')
-			if err != nil {
-				respondWithError(enc, "could not read string properly", UNKNOWN_ERROR, err)
+			addIdMsg, addErr := reader.ReadString('\n')
+			if addErr != nil {
+				respondWithError(enc, "could not read string properly", UNKNOWN_ERROR, addErr)
 				return
 			}
-			log.Debugf("msg received: %s", addIdMsg)
+			log.Debugf("AddIdentity msg received: %s", addIdMsg)
 			addIdDec := json.NewDecoder(strings.NewReader(addIdMsg))
 
 			var newId dto.AddIdentity
@@ -450,17 +482,29 @@ func serveIpc(conn net.Conn) {
 				log.Fatal(err)
 			}
 			newIdentity(newId, enc)
+
+			//save the state
+			rts.SaveState()
 		case "RemoveIdentity":
 			log.Debugf("Request received to remove an identity")
 			removeIdentity(enc, cmd.Payload["Fingerprint"].(string))
+
+			//save the state
+			rts.SaveState()
 		case "Status":
 			reportStatus(enc)
 		case "IdentityOnOff":
 			onOff := cmd.Payload["OnOff"].(bool)
 			fingerprint := cmd.Payload["Fingerprint"].(string)
 			toggleIdentity(enc, fingerprint, onOff)
+
+			//save the state
+			rts.SaveState()
 		case "SetLogLevel":
 			setLogLevel(enc, cmd.Payload["Level"].(string))
+
+			//save the state
+			rts.SaveState()
 		case "NotifyLogLevelUIAndUpdateService":
 			sendLogLevelAndNotify(enc, cmd.Payload["Level"].(string))
 		case "NotifyIdentityUI":
@@ -479,20 +523,24 @@ func serveIpc(conn net.Conn) {
 			enableMfa(enc, fingerprint)
 		case "VerifyMFA":
 			fingerprint := cmd.Payload["Fingerprint"].(string)
-			totp := cmd.Payload["Totp"].(string)
-			verifyMfa(enc, fingerprint, totp)
+			code := cmd.Payload["Code"].(string)
+			verifyMfa(enc, fingerprint, code)
 		case "AuthMFA":
 			fingerprint := cmd.Payload["Fingerprint"].(string)
-			code := cmd.Payload["Totp"].(string)
+			code := cmd.Payload["Code"].(string)
 			authMfa(enc, fingerprint, code)
 		case "ReturnMFACodes":
 			fingerprint := cmd.Payload["Fingerprint"].(string)
-			totpOrRecoveryCode := cmd.Payload["Code"].(string)
-			returnMfaCodes(enc, fingerprint, totpOrRecoveryCode)
+			code := cmd.Payload["Code"].(string)
+			returnMfaCodes(enc, fingerprint, code)
 		case "GenerateMFACodes":
 			fingerprint := cmd.Payload["Fingerprint"].(string)
-			totpOrRecoveryCode := cmd.Payload["Code"].(string)
-			generateMfaCodes(enc, fingerprint, totpOrRecoveryCode)
+			code := cmd.Payload["Code"].(string)
+			generateMfaCodes(enc, fingerprint, code)
+		case "RemoveMFA":
+			fingerprint := cmd.Payload["Fingerprint"].(string)
+			code := cmd.Payload["Code"].(string)
+			removeMFA(enc, fingerprint, code)
 		case "Debug":
 			dbg()
 			respond(enc, dto.Response{
@@ -501,51 +549,75 @@ func serveIpc(conn net.Conn) {
 				Error:   "debug",
 				Payload: nil,
 			})
+
+			//save the state
+			rts.SaveState()
 		default:
 			log.Warnf("Unknown operation: %s. Returning error on pipe", cmd.Function)
 			respondWithError(enc, "Something unexpected has happened", UNKNOWN_ERROR, nil)
 		}
 
-		//save the state
-		rts.SaveState()
-
 		_ = rw.Flush()
 	}
 }
 
-func generateMfaCodes(out *json.Encoder, fingerprint string, totpOrRecoveryCode string) { /*
-		id := rts.Find(fingerprint)
-		codes, err := cziti.GenerateMfaCodes(id.CId, fingerprint, totpOrRecoveryCode)
-		//respond(out, dto.Response{Message: "success", Code: SUCCESS, Error: "", Payload: codes})
+func generateMfaCodes(out *json.Encoder, fingerprint string, code string) {
+	id := rts.Find(fingerprint)
+	if id != nil {
+		codes, err := cziti.GenerateMfaCodes(id.CId, code)
 		if err == nil {
 			respond(out, dto.Response{Message: "success", Code: SUCCESS, Error: "", Payload: codes})
 		} else {
 			respondWithError(out, "msg", MFA_FAILED_TO_RETURN_CODES, err)
-		}*/
+		}
+	} else {
+		respondWithError(out, "Could not generate mfa codes", MFA_FINGERPRINT_NOT_FOUND, fmt.Errorf("id not found with fingerprint: %s", fingerprint))
+	}
 }
 
-func returnMfaCodes(out *json.Encoder, fingerprint string, totpOrRecoveryCode string) { /*
-		id := rts.Find(fingerprint)
-		codes, err := cziti.ReturnMfaCodes(id.CId, fingerprint, totpOrRecoveryCode)
+func returnMfaCodes(out *json.Encoder, fingerprint string, code string) {
+	id := rts.Find(fingerprint)
+	if id != nil {
+		codes, err := cziti.ReturnMfaCodes(id.CId, code)
 		if err == nil {
 			respond(out, dto.Response{Message: "success", Code: SUCCESS, Error: "", Payload: codes})
 		} else {
-			respondWithError(out, "msg", MFA_FAILED_TO_RETURN_CODES, err)
-		}*/
+			log.Warnf("could not return mfa codes? %v", err)
+			respondWithError(out, "could not return mfa codes", MFA_FAILED_TO_RETURN_CODES, err)
+		}
+	} else {
+		respondWithError(out, "Could not return mfa codes", MFA_FINGERPRINT_NOT_FOUND, fmt.Errorf("id not found with fingerprint: %s", fingerprint))
+	}
 }
 
-func enableMfa(out *json.Encoder, fingerprint string) { /*
-		id := rts.Find(fingerprint)
-		cziti.EnableMFA(id.CId, fingerprint)
-
-		respond(out, dto.Response{Message: "mfa enroll complete", Code: SUCCESS, Error: "", Payload: nil})*/
+func enableMfa(out *json.Encoder, fingerprint string) {
+	id := rts.Find(fingerprint)
+	if id != nil {
+		cziti.EnableMFA(id.CId)
+		respond(out, dto.Response{Message: "mfa enroll complete", Code: SUCCESS, Error: "", Payload: nil})
+	} else {
+		respondWithError(out, "Could not enable mfa", MFA_FINGERPRINT_NOT_FOUND, fmt.Errorf("id not found with fingerprint: %s", fingerprint))
+	}
 }
 
-func verifyMfa(out *json.Encoder, fingerprint string, totp string) { /*
-		id := rts.Find(fingerprint)
-		cziti.VerifyMFA(id.CId, fingerprint, totp)
+func verifyMfa(out *json.Encoder, fingerprint string, code string) {
+	id := rts.Find(fingerprint)
+	if id != nil {
+		cziti.VerifyMFA(id.CId, code)
+		respond(out, dto.Response{Message: "mfa verify complete", Code: SUCCESS, Error: "", Payload: nil})
+	} else {
+		respondWithError(out, "Could not verify mfa code", MFA_FINGERPRINT_NOT_FOUND, fmt.Errorf("id not found with fingerprint: %s", fingerprint))
+	}
+}
 
-		respond(out, dto.Response{Message: "mfa verify complete", Code: SUCCESS, Error: "", Payload: nil})*/
+func removeMFA(out *json.Encoder, fingerprint string, code string) {
+	id := rts.Find(fingerprint)
+	if id != nil {
+		cziti.RemoveMFA(id.CId, code)
+		respond(out, dto.Response{Message: "mfa removed successfully", Code: SUCCESS, Error: "", Payload: nil})
+	} else {
+		respondWithError(out, "Could not remove mfa", MFA_FINGERPRINT_NOT_FOUND, fmt.Errorf("id not found with fingerprint: %s", fingerprint))
+	}
 }
 
 func setLogLevel(out *json.Encoder, level string) {
@@ -799,7 +871,7 @@ func newIdentity(newId dto.AddIdentity, out *json.Encoder) {
 	}
 
 	rts.ids[id.FingerPrint] = id
-
+	id.Active = true //since it's a new id being added - presume that it's active
 	connectIdentity(id)
 
 	state := rts.state
@@ -940,9 +1012,9 @@ func acceptServices() {
 			return
 		case serviceChange := <-cziti.ServiceChanges:
 			log.Debugf("processing service change event. id:%s name:%s", serviceChange.Service.Id, serviceChange.Service.Name)
-			change := serviceChange
+			change := dto.ServiceEvent(serviceChange)
 			events.broadcast <- change
-			log.Debugf("dispatched %s change event", serviceChange.Op)
+			log.Debugf("dispatched %s service change event", serviceChange.Op)
 		}
 	}
 }
@@ -1014,14 +1086,14 @@ func AddMetrics(id *Id) {
 	id.Metrics.Down = down
 }
 
-func authMfa(out *json.Encoder, fingerprint string, code string) { /*
-		id := rts.Find(fingerprint)
-		result := cziti.AuthMFA(id.CId, fingerprint, code)
-		if result != "" {
-			respond(out, dto.Response{Message: "mfa verify complete", Code: SUCCESS, Error: "", Payload: nil})
-		} else {
-			respondWithError(out, fmt.Sprintf("the supplied code [%s] was not valid: %s", code, result), 1, nil)
-		}*/
+func authMfa(out *json.Encoder, fingerprint string, code string) {
+	id := rts.Find(fingerprint)
+	result := cziti.AuthMFA(id.CId, code)
+	if result == nil {
+		respond(out, dto.Response{Message: "AuthMFA complete", Code: SUCCESS, Error: "", Payload: fingerprint})
+	} else {
+		respondWithError(out, fmt.Sprintf("AuthMFA failed. the supplied code [%s] was not valid: %s", code, result), 1, result)
+	}
 }
 
 // when the log level is updated through command line, the message is broadcasted to UI and update service as well

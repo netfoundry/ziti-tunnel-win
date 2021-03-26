@@ -33,18 +33,22 @@ namespace ZitiDesktopEdge {
 			}
 			set {
 				_isEnabled = value;
-				// Clinton of the Clints... Need to blow an event bubble and turn this bad boy on or off
-				
 				if (_isEnabled) {
-					OnColor.Opacity = 1;
+
+					ToggleTab.BeginAnimation(Canvas.LeftProperty, new DoubleAnimation(16, TimeSpan.FromSeconds(.3)));
+					OnColor.BeginAnimation(Border.OpacityProperty, new DoubleAnimation(1.0, TimeSpan.FromSeconds(.3)));
+
+					// OnColor.Opacity = 1;
 					// ToggleTab.SetValue(Canvas.LeftProperty, 11);
-					Canvas.SetLeft(ToggleTab, 16);
-					//Storyboard board = LayoutRoot.FindResource("OnAnimate") as Storyboard;
-					//board.Begin();
+					// Canvas.SetLeft(ToggleTab, 16);
+					// Storyboard board = LayoutRoot.FindResource("OnAnimate") as Storyboard;
+					// board.Begin();
 				} else {
-					OnColor.Opacity = 0;
+					ToggleTab.BeginAnimation(Canvas.LeftProperty, new DoubleAnimation(1, TimeSpan.FromSeconds(.3)));
+					OnColor.BeginAnimation(Border.OpacityProperty, new DoubleAnimation(0, TimeSpan.FromSeconds(.3)));
+					// OnColor.Opacity = 0;
 					// ToggleTab.SetValue(Canvas.LeftProperty, "1");
-					Canvas.SetLeft(ToggleTab, 1);
+					// Canvas.SetLeft(ToggleTab, 1);
 					//Storyboard board = LayoutRoot.FindResource("OffAnimate") as Storyboard;
 					//board.Begin();
 				}

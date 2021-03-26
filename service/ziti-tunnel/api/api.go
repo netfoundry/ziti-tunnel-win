@@ -35,6 +35,7 @@ type DesktopEdgeIface interface {
 
 	BroadcastEvent(event interface{})
 	Close()
+	UpdateMfa(fingerprint string, mfaEnabled bool, mfaNeeded bool)
 }
 
 type DesktopEdgeManager interface {

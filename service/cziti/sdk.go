@@ -138,8 +138,8 @@ type ZIdentity struct {
 
 type Mfa struct {
 	mfaContext unsafe.Pointer
-	//authQuery  *C.ziti_auth_query_mfa
-	//responseCb C.ziti_ar_mfa_cb
+	authQuery  *C.ziti_auth_query_mfa
+	responseCb C.ziti_ar_mfa_cb
 }
 
 func NewZid(statusChange func(int)) *ZIdentity {
@@ -154,7 +154,7 @@ func (c *ZIdentity) GetMetrics() (int64, int64, bool) {
 	if c == nil {
 		return 0, 0, false
 	}
-	if C.is_null(unsafe.Pointer(c.czctx)) {
+	if unsafe.Pointer(c.czctx) == C.NULL {
 		log.Debugf("ziti context is still null. the identity is probably not initialized yet: %s", c.Fingerprint)
 		return 0, 0, false
 	}
@@ -269,25 +269,69 @@ func serviceCB(ziti_ctx C.ziti_context, service *C.ziti_service, status C.int, z
 	portRanges := getTunneledServicePortRanges(ts)
 	log.Infof("service update: %s, id: %s, portocols:%s, addresses:%v, portRanges: %v", name, svcId, protocols, addresses, portRanges)
 
-	svc := &dto.Service{
-		Name:          name,
-		Id:            svcId,
-		Protocols:     protocols,
-		Addresses:     addresses,
-		Ports:         portRanges,
-		OwnsIntercept: true,
-	}
-
-	added := ZService{
-		Name:    name,
-		Id:      svcId,
-		Service: svc,
-		Czctx:   ziti_ctx,
-	}
-
 	if status == C.ZITI_SERVICE_UNAVAILABLE {
 		serviceUnavailable(zid, svcId, name)
 	} else if status == C.ZITI_OK {
+		pcIds := make(map[string]bool)
+		var postureChecks []dto.PostureCheck
+
+		//if any posture query sets pass - that will grant the user access to that service
+		hasAccess := false
+
+		//find all posture checks sets...
+		for setIdx := 0; true; setIdx++ {
+			pqs := C.posture_query_set_get(service.posture_query_set, C.int(setIdx))
+			if unsafe.Pointer(pqs) == C.NULL {
+				break
+			}
+
+			if bool(pqs.is_passing) {
+				hasAccess = true
+			}
+
+			//get all posture checks in this set...
+			for pqIdx := 0; true; pqIdx++ {
+				pq := C.posture_queries_get(pqs.posture_queries, C.int(pqIdx))
+				if unsafe.Pointer(pq) == C.NULL {
+					break
+				}
+
+				var pcId string
+				pcId = C.GoString(pq.id)
+
+				_, found := pcIds[pcId]
+				if found {
+					log.Tracef("posture check with id %s already in failing posture check map", pcId)
+				} else {
+					pcIds[C.GoString(pq.id)] = false
+					pc := dto.PostureCheck{
+						IsPassing: bool(pq.is_passing),
+						QueryType: C.GoString(pq.query_type),
+						Id:        pcId,
+					}
+
+					postureChecks = append(postureChecks, pc)
+				}
+			}
+		}
+
+		svc := &dto.Service{
+			Name:          name,
+			Id:            svcId,
+			Protocols:     protocols,
+			Addresses:     addresses,
+			Ports:         portRanges,
+			OwnsIntercept: true,
+			PostureChecks: postureChecks,
+			IsAccessable:  hasAccess,
+		}
+
+		added := ZService{
+			Name:    name,
+			Id:      svcId,
+			Service: svc,
+			Czctx:   ziti_ctx,
+		}
 
 		se := dto.ServiceEvent{
 			ActionEvent: dto.SERVICE_ADDED,
@@ -302,33 +346,26 @@ func serviceCB(ziti_ctx C.ziti_context, service *C.ziti_service, status C.int, z
 }
 
 func serviceUnavailable(ctx *ZIdentity, svcId string, name string) {
+	log.Debugf("serivce has become unavailalbe: %s [%s]", name, svcId)
 	f, ok := ctx.Services.Load(svcId)
 	if ok {
 		found := f.(*ZService)
 		found.Service = nil
 		ctx.Services.Delete(svcId)
 		se := dto.ServiceEvent{
-			ActionEvent: dto.SERVICE_ADDED,
+			ActionEvent: dto.SERVICE_REMOVED,
 			Fingerprint: ctx.Fingerprint,
 			Service: &dto.Service{
 				Name: name,
 				Id:   svcId,
-				/* none of these matter to a remove
-				Protocols:     protocols,
-				Addresses:     nil,
-				Ports:         nil,
-				*/
 			},
 		}
 		ServiceChanges <- se
+		log.Debugf("dispatched serivce has become unavailalbe to ui: %s [%s]", name, svcId)
 	} else {
 		log.Warnf("could not remove service? service not found with id: %s, name: %s in context %d", svcId, name, &ctx)
 	}
 }
-
-type void struct{}
-
-var unimportant void
 
 //export eventCB
 func eventCB(ztx C.ziti_context, event *C.ziti_event_t) {
@@ -363,43 +400,44 @@ func eventCB(ztx C.ziti_context, event *C.ziti_event_t) {
 		}
 
 	case C.ZitiServiceEvent:
-		hostnamesToAdd := make(map[string]struct{})
-		hostnamesToRemove := make(map[string]struct{})
+		hostnamesToAdd := make(map[string]bool)
+		hostnamesToRemove := make(map[string]bool)
 		srvEvent := C.ziti_event_service_event(event)
+
 		for i := 0; true; i++ {
-			s := C.ziti_service_array_get(srvEvent.removed, C.int(i))
-			if unsafe.Pointer(s) == C.NULL {
+			removed := C.ziti_service_array_get(srvEvent.removed, C.int(i))
+			if unsafe.Pointer(removed) == C.NULL {
 				break
 			}
-			addys := serviceCB(ztx, s, C.ZITI_SERVICE_UNAVAILABLE, zid)
+			addys := serviceCB(ztx, removed, C.ZITI_SERVICE_UNAVAILABLE, zid)
 			for _, toRemove := range addys {
-				hostnamesToRemove[toRemove.HostName] = unimportant
+				hostnamesToRemove[toRemove.HostName] = true
 			}
 		}
 		for i := 0; true; i++ {
-			s := C.ziti_service_array_get(srvEvent.changed, C.int(i))
-			if unsafe.Pointer(s) == C.NULL {
+			changed := C.ziti_service_array_get(srvEvent.changed, C.int(i))
+			if unsafe.Pointer(changed) == C.NULL {
 				break
 			}
-			log.Info("service changed remove the service then add it back immediately", C.GoString(s.name))
-			addys := serviceCB(ztx, s, C.ZITI_SERVICE_UNAVAILABLE, zid)
+			log.Info("service changed remove the service then add it back immediately", C.GoString(changed.name))
+			addys := serviceCB(ztx, changed, C.ZITI_SERVICE_UNAVAILABLE, zid)
 			for _, toRemove := range addys {
-				hostnamesToRemove[toRemove.HostName] = unimportant
+				hostnamesToRemove[toRemove.HostName] = true
 			}
 
-			addys = serviceCB(ztx, s, C.ZITI_OK, zid)
+			addys = serviceCB(ztx, changed, C.ZITI_OK, zid)
 			for _, toAdd := range addys {
-				hostnamesToAdd[toAdd.HostName] = unimportant
+				hostnamesToAdd[toAdd.HostName] = true
 			}
 		}
 		for i := 0; true; i++ {
-			s := C.ziti_service_array_get(srvEvent.added, C.int(i))
-			if unsafe.Pointer(s) == C.NULL {
+			added := C.ziti_service_array_get(srvEvent.added, C.int(i))
+			if unsafe.Pointer(added) == C.NULL {
 				break
 			}
-			addys := serviceCB(ztx, s, C.ZITI_OK, zid)
+			addys := serviceCB(ztx, added, C.ZITI_OK, zid)
 			for _, toAdd := range addys {
-				hostnamesToAdd[toAdd.HostName] = unimportant
+				hostnamesToAdd[toAdd.HostName] = true
 			}
 		}
 
@@ -412,6 +450,16 @@ func eventCB(ztx C.ziti_context, event *C.ziti_event_t) {
 			windns.RemoveNrptRules(hostnamesToRemove)
 			log.Infof("unmapped the following hostnames: %v", hostnamesToRemove)
 		}
+
+		var m = dto.IdentityEvent{
+			ActionEvent: dto.IdentityUpdateComplete,
+			Id:          dto.Identity{
+				FingerPrint: zid.Fingerprint,
+			},
+		}
+
+		goapi.BroadcastEvent(m)
+
 	default:
 		log.Infof("event %d not handled", event._type)
 	}
@@ -438,7 +486,7 @@ func zitiContextEvent(ztx C.ziti_context, status C.int, zid *ZIdentity) {
 	}
 	zid.StatusChanges(int(status))
 	idMap.Store(ztx, zid)
-	log.Debugf("zitiContextEvent triggered and stored in ZIdentity with pointer: %p", ztx)
+	log.Debugf("zitiContextEvent triggered and stored in ZIdentity with pointer: %p", unsafe.Pointer(ztx))
 }
 
 func zitiError(code C.int) error {
@@ -461,7 +509,7 @@ func LoadZiti(zid *ZIdentity, cfg string, refreshInterval int) {
 	zid.Options.events = C.ZitiContextEvent | C.ZitiServiceEvent | C.ZitiRouterEvent
 	zid.Options.event_cb = C.ziti_event_cb(C.eventCB)
 
-	//zid.Options.aq_mfa_cb = C.ziti_aq_mfa_cb(C.ziti_aq_mfa_cb_go)
+	zid.Options.aq_mfa_cb = C.ziti_aq_mfa_cb(C.ziti_aq_mfa_cb_go)
 
 	ptr := unsafe.Pointer(zid)
 	zid.Options.app_ctx = ptr
@@ -633,4 +681,8 @@ func AttachSignalHandler() {
 		cstr := C.CString(pgmName)
 		C.set_signal_handler(cstr)
 	}
+}
+
+func InitTunnelerDns(ipBase uint32, mask int) {
+	C.ziti_tunneler_init_dns(C.uint32_t(ipBase), C.int(mask))
 }

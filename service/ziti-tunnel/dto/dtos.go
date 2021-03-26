@@ -34,9 +34,11 @@ type Service struct {
 	Name          string
 	Id            string
 	Protocols     []string
-	Addresses     []Address   //string
-	Ports         []PortRange //string
+	Addresses     []Address
+	Ports         []PortRange
 	OwnsIntercept bool
+	PostureChecks []PostureCheck
+	IsAccessable  bool
 }
 
 type Address struct {
@@ -49,6 +51,12 @@ type Address struct {
 type PortRange struct {
 	High int
 	Low  int
+}
+
+type PostureCheck struct {
+	IsPassing bool
+	QueryType string
+	Id        string
 }
 
 type ServiceOwner struct {
@@ -163,7 +171,7 @@ type LogLevelEvent struct {
 type MfaEvent struct {
 	ActionEvent
 	Fingerprint     string
-	IsVerified      bool
+	Successful      bool
 	Error           string
 	ProvisioningUrl string
 	RecoveryCodes   []string

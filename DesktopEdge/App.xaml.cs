@@ -31,7 +31,7 @@ namespace ZitiDesktopEdge {
 
             if (!createdNew) {
                 using (var client = new NamedPipeClientStream(NamedPipeName)) {
-                    logger.Debug("Another instance exists. Attempting to notify it to open");
+                    logger.Info("Another instance exists. Attempting to notify it to open");
                     try {
                         client.Connect(1000);
                     } catch {

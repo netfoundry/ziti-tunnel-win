@@ -1,4 +1,4 @@
-# Release 1.8.4
+# Release 1.9.1
 
 ## What's New
 * [#322](https://github.com/openziti/desktop-edge-win/issues/322) Ability to toggle identity, set loglevel and generate feedback zip file from cmd line
@@ -7,10 +7,40 @@
 * none
 
 ## Bugs fixed:
-None
+* none
 
 ## Dependency Updates
-None
+* none
+
+# Release 1.9.0
+
+## What's New
+* MFA functionality has been implemented and works with later versions of the Ziti Controller (18.5+). [A brief overview is here](doc/mfa/mfa.md)
+
+## Other changes:
+* UI: changed the icon to show the "white" icon when off, green when on.
+
+## Bugs fixed:
+* fixed a bug with the monitor service indicating it was using zulu time - when it was not
+
+## Dependency Updates
+* Tunneler SDK to v0.14.0/CSDK 0.22.0
+
+# Release 1.8.4
+
+## What's New
+* none
+
+## Other changes:
+* none
+
+## Bugs fixed:
+* Fixed a bug from the CSDK handling hosted services
+* [#330](https://github.com/openziti/desktop-edge-win/issues/330) Fixed issue intercepting connections when the configured IP is not exactly in 100.64.0.0/10
+* [#328](https://github.com/openziti/desktop-edge-win/issues/328) Print a warning when the configured IP is not in the carrier grade NAT range 100.64.0.0/10
+
+## Dependency Updates
+* Tunneler SDK to v0.11.10/CSDK 0.20.22
 
 # Release 1.8.3
 

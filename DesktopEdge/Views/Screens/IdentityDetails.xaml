@@ -1,0 +1,179 @@
+﻿<UserControl x:Class="ZitiDesktopEdge.IdentityDetails"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ZitiDesktopEdge"
+             mc:Ignorable="d" 
+             x:Name="IdentityArea"
+             d:DesignHeight="500" d:DesignWidth="350">
+    <Grid>
+        <!-- Border Arrow pointing to TaskBar -->
+        <Canvas>
+            <Rectangle Name="Arrow" HorizontalAlignment="Center" Height="20" Fill="White" Width="20" Canvas.Left="185" ClipToBounds="True" Canvas.Bottom="-10">
+                <Rectangle.LayoutTransform>
+                    <RotateTransform Angle="-45"/>
+                </Rectangle.LayoutTransform>
+            </Rectangle>
+        </Canvas>
+        
+        <!-- Background Color for Pop Overs -->
+        <Rectangle x:Name="MainCanvas" Margin="10,10,10,10" Fill="White" RadiusY="10" RadiusX="10"></Rectangle>
+
+        <Grid Margin="20,20,20,-20" MaxWidth="350">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Stretch" Margin="10,10,10,10">
+                
+                <!-- Header Controls -->
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="40"/>
+                    </Grid.ColumnDefinitions>
+                    <local:Toggler x:Name="IdDetailToggle" Grid.Column="0" HorizontalAlignment="Left" OnToggled="IdToggle"></local:Toggler>
+                    <TextBlock x:Name="IdDetailName" MouseDown="Window_MouseDown" MaxWidth="220" Grid.Column="1" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="#0F0F23" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                    <Image Grid.Column="2" Cursor="Hand" Source="/Assets/Images/x.png" Width="20" Height="20" Margin="0,0,0,0" HorizontalAlignment="Right" MouseUp="HideMenu"></Image>
+                </Grid>
+                <Rectangle HorizontalAlignment="Stretch" Height="1" Fill="#7d8faf" Opacity="0.2"></Rectangle>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"></RowDefinition>
+                        <RowDefinition Height="30"></RowDefinition>
+                        <RowDefinition Height="30"></RowDefinition>
+                        <RowDefinition Height="30"></RowDefinition>
+                        <RowDefinition Height="30"></RowDefinition>
+                        <RowDefinition Height="30"></RowDefinition>
+                        <RowDefinition x:Name="ServiceRow" Height="140"></RowDefinition>
+                        <RowDefinition Height="40"></RowDefinition>
+                        <RowDefinition Height="40"></RowDefinition>
+                        <RowDefinition x:Name="IdImage" Height="0"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Identity Details Area -->
+                    <local:MenuEditItem x:Name="IdentityName" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Stretch" Label="Name" IsLocked="True"></local:MenuEditItem>
+                    <local:MenuEditToggle x:Name="IdentityMFA" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Stretch" Label="Multi Factor Auth" Recovery="MFARecovery" Authenticate="MFAAuthenticate" Toggle="ToggleMFA"></local:MenuEditToggle>
+                    <local:MenuEditItem x:Name="IdentityNetwork" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" Label="Network" IsLocked="True"></local:MenuEditItem>
+                    <local:MenuEditItem x:Name="IdentityStatus" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Label="Status" IsLocked="True"></local:MenuEditItem>
+                    <local:MenuEditItem x:Name="IdentityEnrollment" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Stretch" Label="Enrollment Status" IsLocked="True"></local:MenuEditItem>
+                    <local:MenuEditSearch x:Name="ServiceTitle" Grid.Column="0" Grid.Row="5" HorizontalAlignment="Stretch" Filter="DoFilter"></local:MenuEditSearch>
+                    <TextBox Name="NoAuthServices" Height="30" FontWeight="Bold" TextAlignment="Center" Text="You must authenticate to access services" IsReadOnly="True" HorizontalAlignment="Stretch" BorderThickness="0" ClipToBounds="True" Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Padding="0,6,3,0" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="Black"></TextBox>
+
+                    <!-- Service List Area (Higher Contrast to differentiate) -->
+                    <Grid Name="MainDetailScroll" Grid.Column="0" MaxHeight="160" Grid.Row="6" Margin="-8,0,-8,0">
+                        <Rectangle Margin="10,10,10,10" Fill="#070826" RadiusY="10" RadiusX="10"></Rectangle>
+                        <ScrollViewer VerticalScrollBarVisibility="Visible" CanContentScroll="True" Margin="16,16,8,16">
+                            <StackPanel Name="ServiceList" Orientation="Vertical"></StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                    <Rectangle x:Name="AuthMessageBg" Margin="40,0,40,0" Opacity="0.8" RadiusX="7" Grid.Row="6" RadiusY="7" ClipToBounds="True" Height="30" VerticalAlignment="Bottom" Cursor="Hand" MouseUp="AuthFromMessage">
+                        <Rectangle.Fill>
+                            <SolidColorBrush x:Name="AuthBgColor" Color="#0069FF"/>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Label x:Name="AuthMessageLabel" HorizontalAlignment="Center" Content="Authenticate" IsHitTestVisible="False" Foreground="#FFFFFF" Grid.Row="6"></Label>
+                    
+                    <!-- Forget Identity Button -->
+                    <Label Name="ForgetIdentityButton" Grid.Column="0" Grid.Row="7" Padding="0,10,0,10" Margin="0,0,0,0" Content="Forget This Identity" Cursor="Hand" Foreground="#F4044D" HorizontalAlignment="Center" Mouse.MouseUp="ForgetIdentity"></Label>
+
+                    <Image Name="ForgetIdentityImage" Visibility="Collapsed" Source="/Assets/Images/identity.png" Grid.Column="0" Grid.Row="8" Height="80" Width="80" Opacity="0.3" HorizontalAlignment="Stretch"></Image>
+                </Grid>
+            </StackPanel>
+        </Grid>
+
+        <Rectangle x:Name="ModalBg" Margin="10,10,10,10" Fill="Black" RadiusY="10" RadiusX="10" Opacity="0" Visibility="Collapsed"></Rectangle>
+        
+        <!-- Expended Detail Modal for Details pop up on service list -->
+        <Grid x:Name="DetailsArea" Visibility="Collapsed" Height="400" Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Border Margin="10,10,10,10" BorderBrush="Black" BorderThickness="8" CornerRadius="10">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" Direction="1" RenderingBias="Quality" ShadowDepth="1" Opacity="1"/>
+                </Border.Effect>
+            </Border>
+            <Rectangle Margin="10,10,10,10" RadiusX="10" RadiusY="10" ClipToBounds="True">
+                <Rectangle.Fill>
+                    <SolidColorBrush Color="#FFFFFF" Opacity="0.97"/>
+                </Rectangle.Fill>
+            </Rectangle>
+            <StackPanel x:Name="DetailPanel" Grid.Column="0" Orientation="Vertical" Margin="20,20,20,20" VerticalAlignment="Center" FocusVisualStyle="{x:Null}">
+                <Label Content="Name" Padding="10,0,0,0" FontWeight="Bold" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="Black"></Label>
+                <TextBox x:Name="DetailName" MaxWidth="300" Grid.Row="0" Background="Transparent" IsReadOnly="True" HorizontalAlignment="Stretch" Height="20" BorderThickness="0" TextAlignment="Left" Padding="0,0,0,0" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" ></TextBox>
+
+                <Label Content="Url" Padding="10,0,0,0" FontWeight="Bold" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="Black"></Label>
+                <TextBox Grid.Column="0" x:Name="DetailUrl" MaxWidth="300" Background="Transparent" ClipToBounds="True" IsReadOnly="True" HorizontalAlignment="Stretch" Height="20" BorderThickness="0" TextAlignment="Left" Padding="0,0,0,0" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" ></TextBox>
+
+                <Label Content="Addresses" Padding="10,0,0,0" FontWeight="Bold" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="Black"></Label>
+                <TextBox x:Name="DetailAddress" MaxWidth="300" Background="Transparent" IsReadOnly="True" HorizontalAlignment="Stretch" Height="20" BorderThickness="0" TextAlignment="Left" Padding="0,0,0,0" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" ></TextBox>
+
+                <Label Content="Ports" Padding="10,0,0,0" FontWeight="Bold" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="Black"></Label>
+                <TextBox x:Name="DetailPorts" MaxWidth="300" Background="Transparent" IsReadOnly="True" HorizontalAlignment="Stretch" Height="20" BorderThickness="0" TextAlignment="Left" Padding="0,0,0,0" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" ></TextBox>
+
+                <Label Content="Protocols" Padding="10,0,0,0" FontWeight="Bold" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="Black"></Label>
+                <TextBox x:Name="DetailProtocols" MaxWidth="300" Background="Transparent" IsReadOnly="True" HorizontalAlignment="Stretch" Height="20" BorderThickness="0" TextAlignment="Left" Padding="0,0,0,0" FontSize="12" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" ></TextBox>
+                
+            </StackPanel>
+            <Image Source="/Assets/Images/closeBlack.png" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,40,40,0" Width="10" Height="10" Cursor="Hand" MouseUp="CloseDetails"></Image>
+        </Grid>
+
+        <!-- Confirmation Prompt for confirming deletion -->
+        <Grid x:Name="ConfirmView" Visibility="Collapsed" Width="400">
+            <Rectangle RadiusX="10" RadiusY="10">
+                <Rectangle.Fill>
+                    <SolidColorBrush Color="Black"/>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Canvas>
+                <Rectangle Name="ConfirmArrow" HorizontalAlignment="Center" Height="20" Fill="Black" Width="20" Canvas.Left="185" ClipToBounds="True" Canvas.Bottom="-10">
+                    <Rectangle.LayoutTransform>
+                        <RotateTransform Angle="-45"/>
+                    </Rectangle.LayoutTransform>
+                </Rectangle>
+            </Canvas>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+            </Grid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="60"></RowDefinition>
+                    <RowDefinition Height="80"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Label Name="ErrorTitle" Foreground="White" Content="Confirm Forget" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans"/>
+                <TextBlock TextWrapping="WrapWithOverflow" Foreground="LightGray" Padding="30" Text="If you delete this identity you will no longer have access to the resources that it grants you." Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" FontSize="14" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans"/>
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                        <ColumnDefinition Width="1*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="CancelConfirmButton" Grid.Column="0" Margin="40,0,20,0" Cursor="Hand" BorderThickness="0" Foreground="#FFFFFF" Background="#0068F9" Content="Close" Click="CancelConfirmButton_Click" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button x:Name="ConfirmButton" Grid.Column="1" Margin="20,0,40,0" Cursor="Hand" BorderThickness="0" Foreground="#FFFFFF" Background="#F4044D" Content="Confirm" Click="ConfirmButton_Click" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

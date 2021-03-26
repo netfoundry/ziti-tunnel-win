@@ -116,7 +116,7 @@ func RemoveAllNrptRules() {
 	}
 }
 
-func AddNrptRules(domainsToMap map[string]struct{}, dnsServer string) {
+func AddNrptRules(domainsToMap map[string]bool, dnsServer string) {
 	if len(domainsToMap) == 0 {
 		log.Debug("no domains to map specified to AddNrptRules. exiting early")
 		return
@@ -148,7 +148,7 @@ ForEach ($Rule in $Rules) {
 	}
 }
 
-func RemoveNrptRules(domainsToMap map[string]struct{}) {
+func RemoveNrptRules(domainsToMap map[string]bool) {
 	if len(domainsToMap) == 0 {
 		log.Debug("no domains to map specified to RemoveNrptRules. exiting early")
 		return

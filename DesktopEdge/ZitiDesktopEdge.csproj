@@ -70,7 +70,7 @@
     </ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <GenerateManifests>true</GenerateManifests>
+    <GenerateManifests>false</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>true</SignManifests>
@@ -90,6 +90,9 @@
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.7.8\lib\net45\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="QRCoder, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\QRCoder.1.4.1\lib\net40\QRCoder.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -139,13 +142,24 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ControllerScreen.xaml.cs">
-      <DependentUpon>ControllerScreen.xaml</DependentUpon>
+    <Compile Include="Models\MessageCount.cs" />
+    <Compile Include="Models\MFA.cs" />
+    <Compile Include="Views\Controls\StyledButton.xaml.cs">
+      <DependentUpon>StyledButton.xaml</DependentUpon>
     </Compile>
-    <Compile Include="IdentityDetails.xaml.cs">
+    <Compile Include="Views\ItemRenderers\MenuEditSearch.xaml.cs">
+      <DependentUpon>MenuEditSearch.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ItemRenderers\MenuEditToggle.xaml.cs">
+      <DependentUpon>MenuEditToggle.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Screens\Debugging.xaml.cs">
+      <DependentUpon>Debugging.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Screens\IdentityDetails.xaml.cs">
       <DependentUpon>IdentityDetails.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainMenu.xaml.cs">
+    <Compile Include="Views\Screens\MainMenu.xaml.cs">
       <DependentUpon>MainMenu.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\UIModel.cs" />
@@ -156,9 +170,6 @@
     </Compile>
     <Compile Include="Views\ItemRenderers\MenuEditItem.xaml.cs">
       <DependentUpon>MenuEditItem.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="RegistrationScreen.xaml.cs">
-      <DependentUpon>RegistrationScreen.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ItemRenderers\MenuIdentityItem.xaml.cs">
       <DependentUpon>MenuIdentityItem.xaml</DependentUpon>
@@ -177,12 +188,27 @@
     <Compile Include="Views\Controls\Toggler.xaml.cs">
       <DependentUpon>Toggler.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WinAPI.cs" />
-    <Page Include="ControllerScreen.xaml">
+    <Compile Include="Views\Screens\MFAScreen.xaml.cs">
+      <DependentUpon>MFAScreen.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Native\WinAPI.cs" />
+    <Page Include="Views\Controls\StyledButton.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="IdentityDetails.xaml">
+    <Page Include="Views\ItemRenderers\MenuEditSearch.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ItemRenderers\MenuEditToggle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Screens\Debugging.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Screens\IdentityDetails.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -190,7 +216,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainMenu.xaml">
+    <Page Include="Views\Screens\MainMenu.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -217,10 +243,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="RegistrationScreen.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Views\ItemRenderers\MenuIdentityItem.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -242,6 +264,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Controls\Toggler.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Screens\MFAScreen.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -375,7 +401,7 @@
     <Resource Include="Assets\Images\server.png" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Views\Screens\" />
+    <Resource Include="Assets\Images\detail.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Images\Warning.png" />
@@ -409,6 +435,16 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Images\WarningRed.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Images\qrcode.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Images\mfaoff.png" />
+    <Resource Include="Assets\Images\mfaon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Images\recovery.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

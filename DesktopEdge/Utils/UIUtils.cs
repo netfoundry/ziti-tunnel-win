@@ -14,6 +14,7 @@ namespace Ziti.Desktop.Edge.Utils {
 				var l = LogLevel.FromString(level);
 				foreach (var rule in LogManager.Configuration.LoggingRules) {
 					rule.EnableLoggingForLevel(l);
+					rule.SetLoggingLevels(l, LogLevel.Error);
 				}
 
 				LogManager.ReconfigExistingLoggers();

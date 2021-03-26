@@ -11,12 +11,14 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition x:Name="WarningColumn" Width="0"/>
+                <ColumnDefinition x:Name="DetailColumn" Width="30"/>
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Vertical" Height="30" Grid.Column="0">
-                <TextBox Name="MainLabel" Padding="12,0,12,0" Height="15" IsReadOnly="True" BorderThickness="0" FontWeight="Bold" Background="White" ClipToBounds="True" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" FontSize="11" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="Black"></TextBox>
-                <TextBox Name="MainEdit" IsReadOnly="True" Height="14" Padding="12,0,12,0" TextAlignment="Left" BorderThickness="0" Background="White" ClipToBounds="True" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Stretch" FontSize="10" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="DarkGray"></TextBox>
+                <TextBox Name="MainLabel" Padding="0,0,12,0" Height="15" IsReadOnly="True" BorderThickness="0" FontWeight="Bold" Background="Transparent" ClipToBounds="True" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" FontSize="11" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="White"></TextBox>
+                <TextBox Name="MainEdit" IsReadOnly="True" Height="14" Padding="0,0,12,0" TextAlignment="Left" BorderThickness="0" Background="Transparent" ClipToBounds="True" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Stretch" FontSize="10" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="LightGray"></TextBox>
             </StackPanel>
-            <Image x:Name="WarnIcon" Visibility="Collapsed" Source="/Assets/Images/Warning.png" Grid.Column="1" Width="20" Height="20"/>
+            <Image x:Name="DetailIcon" Source="/Assets/Images/detail.png" Grid.Column="2" Width="20" Height="20" Cursor="Hand" MouseUp="DetailIcon_MouseUp"/>
+            <Image x:Name="WarnIcon" Visibility="Collapsed" Source="/Assets/Images/Warning.png" Grid.Column="1" Width="20" Height="20" Cursor="Hand" MouseUp="WarnIcon_MouseUp"/>
         </Grid>
     </StackPanel>
 </UserControl>

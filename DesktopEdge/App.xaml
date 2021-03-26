@@ -5,6 +5,34 @@
              ShutdownMode="OnExplicitShutdown"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="FontFamily" Value="pack://application:,,,/Assets/Fonts/#Open Sans"/>
+        </Style>
+
+        <Style x:Key="RoundCorner" TargetType="{x:Type Button}">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Background" Value="AliceBlue"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid x:Name="grid">
+                            <Border x:Name="border" CornerRadius="12" BorderThickness="0"></Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" TargetName="grid" Value="0.8"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" TargetName="grid" Value="0.25"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style TargetType="FrameworkElement" x:Key="VisibleAnimation">
             <Setter Property="Visibility" Value="Collapsed"/>
             <Setter Property="Opacity" Value="0"/>

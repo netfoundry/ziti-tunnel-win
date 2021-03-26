@@ -482,3 +482,12 @@ func (t *RuntimeState) ReleaseIP() {
 func (t *RuntimeState) BroadcastEvent(event interface{}) {
 	events.broadcast <- event
 }
+
+func (t *RuntimeState) UpdateMfa(fingerprint string, mfaEnabled bool, mfaNeeded bool) {
+	id := t.Find(fingerprint)
+
+	if id != nil {
+		id.MfaEnabled = mfaEnabled
+		id.MfaNeeded = mfaNeeded
+	}
+}

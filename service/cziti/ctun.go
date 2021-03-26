@@ -52,6 +52,7 @@ dns_manager* dns_mgr_c;
 int netifAddRoute(netif_handle dev, char* dest);
 int netifRemoveRoute(netif_handle dev, char* dest);
 
+
 */
 import "C"
 import (
@@ -134,11 +135,6 @@ func makeDriver(name string) C.netif_driver {
 
 //export netifWrite
 func netifWrite(_ C.netif_handle, buf unsafe.Pointer, length C.size_t) C.ssize_t {
-	/*t, found := devMap[C.GoString(h.id)]
-	if !found {
-		log.Panicf("An unexpected and unrecoverable error has occurred while calling netifWrite")
-	}*/
-
 	b := C.GoBytes(buf, C.int(length))
 
 	theTun.writeQ <- b

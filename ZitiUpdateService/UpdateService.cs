@@ -807,7 +807,7 @@ namespace ZitiUpdateService {
 				};
 				EventRegistry.SendEventToConsumers(status);
 			} else {
-				Logger.Error("SERVICE IS DOWN and did not exit cleanly. initiating DNS cleanup");
+				Logger.Error("SERVICE IS DOWN and did not exit cleanly.");
 
 				MonitorServiceStatusEvent status = new MonitorServiceStatusEvent() {
 					Code = 10,
@@ -817,16 +817,6 @@ namespace ZitiUpdateService {
 					ReleaseStream = IsBeta ? "beta" : "stable"
 				};
 				EventRegistry.SendEventToConsumers(status);
-
-				//EnumerateDNS();
-				var ps = System.Management.Automation.PowerShell.Create();
-				string script = "Get-NetIPInterface | ForEach-Object { Set-DnsClientServerAddress -InterfaceIndex $_.ifIndex -ResetServerAddresses }";
-				ps.Commands.AddScript(script);
-				Logger.Info("No longer connected to the service. Resetting the network by executing reset script.");
-				Task.Delay(1000).Wait();
-				ps.Invoke();
-				Logger.Info("Reset script executed.");
-				//EnumerateDNS();
 			}
 		}
 

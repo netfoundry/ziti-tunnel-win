@@ -24,7 +24,7 @@ msbuild ZitiDesktopEdge.sln /property:Configuration=Release
 
 Pop-Location
 
-$ADVINST = "C:\Program Files (x86)\Caphyon\Advanced Installer 18.0\bin\x86\AdvancedInstaller.com"
+$ADVINST = "C:\Program Files (x86)\Caphyon\Advanced Installer 18.1\bin\x86\AdvancedInstaller.com"
 $ADVPROJECT = "${scriptPath}\ZitiDesktopEdge.aip"
 $installerVersion=(Get-Content -Path ${scriptPath}\..\version)
 $action = '/SetVersion'

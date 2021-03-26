@@ -76,10 +76,6 @@ extern void c_mapiter(model_map *map) {
 	}
 }
 
-bool is_null(void* anything){
-    return anything == NULL;
-}
-
 struct ziti_context_event* ziti_event_context_event(ziti_event_t *ev) {
     return &ev->event.ctx;
 }
@@ -93,6 +89,14 @@ struct ziti_service_event* ziti_event_service_event(ziti_event_t *ev) {
 }
 
 ziti_service* ziti_service_array_get(ziti_service_array arr, int idx) {
+    return arr ? arr[idx] : NULL;
+}
+
+ziti_posture_query_set* posture_query_set_get(ziti_posture_query_set_array arr, int idx) {
+    return arr ? arr[idx] : NULL;
+}
+
+ziti_posture_query* posture_queries_get(ziti_posture_query_array arr, int idx) {
     return arr ? arr[idx] : NULL;
 }
 

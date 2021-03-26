@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<DOCUMENT Type="Advanced Installer" CreateVersion="17.4.1" version="18.0" Modules="professional" RootPath="." Language="en" Id="{7315FE7B-0418-4F38-8B12-6C0594276D30}">
+<DOCUMENT Type="Advanced Installer" CreateVersion="17.4.1" version="18.1" Modules="professional" RootPath="." Language="en" Id="{7315FE7B-0418-4F38-8B12-6C0594276D30}">
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_BackgroundColor" Value="lightblue" MsiKey="AI_BackgroundColor"/>
+    <ROW Property="AI_CURRENT_YEAR" Value="2021" ValueLocId="-"/>
     <ROW Property="AI_FINDEXE_TITLE" Value="Select the installation package for [|ProductName]" ValueLocId="AI.Property.FindExeTitle"/>
     <ROW Property="AI_FrameBtnsColor" Value="powderblue" MultiBuildValue="AnyCPU_Release:mediumorchid" MsiKey="AI_FrameBtnsColor"/>
     <ROW Property="AI_FrameColor" Value="powderblue" MultiBuildValue="AnyCPU_Release:deepskyblue" MsiKey="AI_FrameColor"/>
@@ -22,10 +23,10 @@
     <ROW Property="CTRLS" Value="2"/>
     <ROW Property="Manufacturer" Value="NetFoundry, Inc."/>
     <ROW Property="MsiLogging" MultiBuildValue="AnyCPU_Release:vp"/>
-    <ROW Property="ProductCode" Value="1033:{88134B17-155E-4185-A84A-82DD7F56EBA5} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{D783620C-7A65-48E3-AA74-45F17B627C0F} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="Ziti Desktop Edge"/>
-    <ROW Property="ProductVersion" Value="1.8.3" Type="32"/>
+    <ROW Property="ProductVersion" Value="1.9.0" Type="32"/>
     <ROW Property="REBOOT" MultiBuildValue="AnyCPU_Release:Suppress"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
     <ROW Property="UpgradeCode" Value="{CB7E173A-663D-4A23-BB22-D1E8D885C2F3}"/>
@@ -54,6 +55,7 @@
     <ROW Component="NLog.dll" ComponentId="{384D38B5-A4A0-4BC6-886A-82153E2687ED}" Directory_="APPDIR" Attributes="0" KeyPath="NLog.dll"/>
     <ROW Component="Newtonsoft.Json.dll" ComponentId="{5D7B59CE-A1B5-4EE9-842E-0206408F8674}" Directory_="APPDIR" Attributes="0" KeyPath="Newtonsoft.Json.dll"/>
     <ROW Component="ProductInformation" ComponentId="{4FC3A7CB-D334-466A-A919-E6A237EF4443}" Directory_="APPDIR" Attributes="260" KeyPath="Version"/>
+    <ROW Component="QRCoder.dll" ComponentId="{4FE1F9B5-1948-4D04-AFB1-3A4CE374A0D8}" Directory_="APPDIR" Attributes="0" KeyPath="QRCoder.dll"/>
     <ROW Component="SHORTCUTDIR" ComponentId="{3A88A759-A3FE-443F-A6D9-0D97BA424B2E}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="System.Buffers.dll" ComponentId="{337A28A5-0EA0-420C-8CC3-84FBC3EF7BE2}" Directory_="APPDIR" Attributes="0" KeyPath="System.Buffers.dll"/>
     <ROW Component="WpfMouseWheelLib.dll" ComponentId="{8CFD4E8C-7E6E-4797-A38A-02B7794BFF5F}" Directory_="APPDIR" Attributes="0" KeyPath="WpfMouseWheelLib.dll"/>
@@ -91,6 +93,7 @@
     <ROW File="WpfMouseWheelLib.dll" Component_="WpfMouseWheelLib.dll" FileName="WPFMOU~1.DLL|WpfMouseWheelLib.dll" Attributes="0" SourcePath="..\DesktopEdge\bin\Release\WpfMouseWheelLib.dll" SelfReg="false"/>
     <ROW File="DnsClient.dll" Component_="DnsClient.dll" FileName="DNSCLI~1.DLL|DnsClient.dll" Attributes="0" SourcePath="..\ZitiUpdateService\bin\Release\DnsClient.dll" SelfReg="false"/>
     <ROW File="System.Buffers.dll" Component_="System.Buffers.dll" FileName="SYSTEM~1.DLL|System.Buffers.dll" Attributes="0" SourcePath="..\ZitiUpdateService\bin\Release\System.Buffers.dll" SelfReg="false"/>
+    <ROW File="QRCoder.dll" Component_="QRCoder.dll" FileName="QRCoder.dll" Attributes="0" SourcePath="..\DesktopEdge\bin\Release\QRCoder.dll" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiPersistentDataComponent">
     <ROW PersistentRow="ZitiUpdateServicelog.config" Type="0" Condition="OLDPRODUCTS"/>
@@ -142,6 +145,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiActionTextComponent">
     <ROW Action="AI_AiBackupImmediate" Description="Preparing backup operation" DescriptionLocId="ActionText.Description.AI_AiBackupImmediate" Template="Path: [1]" TemplateLocId="ActionText.Template.AI_AiBackupImmediate"/>
     <ROW Action="AI_AiBackupRollback" Description="Rollback backup" DescriptionLocId="ActionText.Description.AI_AiBackupRollback" Template="Path: [1]" TemplateLocId="ActionText.Template.AI_AiBackupRollback"/>
+    <ROW Action="AI_AiBackupRollbackImpersonate" Description="Rollback backup" DescriptionLocId="ActionText.Description.AI_AiBackupRollback" Template="Path: [1]" TemplateLocId="ActionText.Template.AI_AiBackupRollback"/>
     <ROW Action="AI_AiRestoreDeferred" Description="Executing restore operation" DescriptionLocId="ActionText.Description.AI_AiRestoreDeferred" Template="Path: [1]" TemplateLocId="ActionText.Template.AI_AiRestoreDeferred"/>
     <ROW Action="AI_AiRestoreDeferredImpersonate" Description="Executing restore operation" DescriptionLocId="ActionText.Description.AI_AiRestoreDeferred" Template="Path: [1]" TemplateLocId="ActionText.Template.AI_AiRestoreDeferred"/>
     <ROW Action="AI_AiRestoreRollback" Description="Rollback restore" DescriptionLocId="ActionText.Description.AI_AiRestoreRollback" Template="Path: [1]" TemplateLocId="ActionText.Template.AI_AiRestoreRollback"/>
@@ -200,6 +204,7 @@
     <ROW Action="AI_AiBackupCleanup" Type="1" Source="ResourceCleaner.dll" Target="OnAiBackupCleanup" WithoutSeq="true"/>
     <ROW Action="AI_AiBackupImmediate" Type="1" Source="ResourceCleaner.dll" Target="OnAiBackupImmediate"/>
     <ROW Action="AI_AiBackupRollback" Type="11521" Source="ResourceCleaner.dll" Target="OnAiBackupRollback"/>
+    <ROW Action="AI_AiBackupRollbackImpersonate" Type="9473" Source="ResourceCleaner.dll" Target="OnAiBackupRollbackImpersonate"/>
     <ROW Action="AI_AiRestoreDeferred" Type="11265" Source="ResourceCleaner.dll" Target="OnAiRestoreDeferred"/>
     <ROW Action="AI_AiRestoreDeferredImpersonate" Type="9217" Source="ResourceCleaner.dll" Target="OnAiRestoreDeferredImpersonate"/>
     <ROW Action="AI_AiRestoreRollback" Type="11521" Source="ResourceCleaner.dll" Target="OnAiRestoreRollback" WithoutSeq="true"/>
@@ -254,6 +259,7 @@
     <ROW Feature_="MainFeature" Component_="WpfMouseWheelLib.dll"/>
     <ROW Feature_="MainFeature" Component_="DnsClient.dll"/>
     <ROW Feature_="MainFeature" Component_="System.Buffers.dll"/>
+    <ROW Feature_="MainFeature" Component_="QRCoder.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="ziti.exe" SourcePath="ziti.ico" Index="0"/>
@@ -261,7 +267,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
     <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
-    <ROW Action="AI_STORE_LOCATION" Condition="(Not Installed) OR REINSTALL" Sequence="1502"/>
+    <ROW Action="AI_STORE_LOCATION" Condition="(Not Installed) OR REINSTALL" Sequence="1503"/>
     <ROW Action="AI_PREPARE_UPGRADE" Condition="AI_UPGRADE=&quot;No&quot; AND (Not Installed)" Sequence="1397"/>
     <ROW Action="AI_ResolveKnownFolders" Sequence="52"/>
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>
@@ -281,9 +287,10 @@
     <ROW Action="AI_ProcessFailActions" Sequence="5848"/>
     <ROW Action="AI_DATA_SETTER_1" Sequence="5847"/>
     <ROW Action="AI_AiBackupImmediate" Sequence="1401"/>
-    <ROW Action="AI_AiBackupRollback" Sequence="1501"/>
+    <ROW Action="AI_AiBackupRollback" Sequence="1502"/>
     <ROW Action="AI_AiRestoreDeferredImpersonate" Sequence="6598"/>
     <ROW Action="AI_AiRestoreDeferred" Sequence="6599"/>
+    <ROW Action="AI_AiBackupRollbackImpersonate" Sequence="1501"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
     <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
