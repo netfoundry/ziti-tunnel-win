@@ -29,6 +29,7 @@ import (
 	"github.com/openziti/desktop-edge-win/service/ziti-tunnel/constants"
 	"github.com/openziti/desktop-edge-win/service/ziti-tunnel/dto"
 	"github.com/openziti/desktop-edge-win/service/ziti-tunnel/util/logging"
+	"github.com/openziti/desktop-edge-win/service/ziti-tunnel/util/recovery"
 	"github.com/openziti/foundation/identity/identity"
 	idcfg "github.com/openziti/sdk-golang/ziti/config"
 	"github.com/openziti/sdk-golang/ziti/enroll"
@@ -135,6 +136,7 @@ func SubMain(ops chan string, changes chan<- svc.Status) error {
 	// wait 1 second for the shutdown to send to clients
 	shutdownDelay := make(chan bool)
 	go func() {
+		defer recovery.TunnelPanic()
 		time.Sleep(1 * time.Second)
 		shutdownDelay <- true
 	}()
@@ -264,6 +266,8 @@ func initialize(cLogLevel int) error {
 	if err != nil {
 		return err
 	}
+	log.Info("attaching signal handler")
+    cziti.AttachSignalHandler()
 
 	cziti.Start(rts, rts.state.TunIpv4, rts.state.TunIpv4Mask, cLogLevel)
 	err = cziti.HookupTun(*t)
@@ -344,6 +348,7 @@ func closeConn(conn net.Conn) {
 }
 
 func accept(p net.Listener, serveFunction func(net.Conn), debug string) {
+	defer recovery.TunnelPanic()
 	for {
 		c, err := p.Accept()
 		if err != nil {
@@ -358,6 +363,7 @@ func accept(p net.Listener, serveFunction func(net.Conn), debug string) {
 }
 
 func serveIpc(conn net.Conn) {
+	defer recovery.TunnelPanic()
 	log.Debug("beginning ipc receive loop")
 	defer log.Info("a connected IPC client has disconnected")
 	defer closeConn(conn) //close the connection after this function invoked as go routine exits
@@ -376,6 +382,7 @@ func serveIpc(conn net.Conn) {
 	log.Debugf("accepting a new client for serveIpc. total connection count: %d", ipcConnections)
 
 	go func() {
+		defer recovery.TunnelPanic()
 		select {
 		case <-interrupt:
 			log.Info("request to interrupt read loop received")
@@ -551,6 +558,7 @@ func setLogLevel(out *json.Encoder, level string) {
 }
 
 func serveLogs(conn net.Conn) {
+	defer recovery.TunnelPanic()
 	log.Debug("accepted a logs connection, writing logs to pipe")
 	w := bufio.NewWriter(conn)
 
@@ -592,6 +600,7 @@ func writeLogToStream(file *os.File, writer *bufio.Writer) {
 }
 
 func serveEvents(conn net.Conn) {
+	defer recovery.TunnelPanic()
 	randomInt := rand.Int()
 	log.Debug("accepted an events connection, writing events to pipe")
 	defer closeConn(conn) //close the connection after this function invoked as go routine exits
@@ -924,6 +933,7 @@ func eventsPipeName() string {
 }
 
 func acceptServices() {
+	defer recovery.TunnelPanic()
 	for {
 		select {
 		case <-shutdown:
@@ -938,6 +948,7 @@ func acceptServices() {
 }
 
 func handleEvents(isInitialized chan struct{}) {
+	defer recovery.TunnelPanic()
 	events.run()
 	d := 5 * time.Second
 	every5s := time.NewTicker(d)

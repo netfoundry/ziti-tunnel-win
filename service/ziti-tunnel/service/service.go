@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"github.com/openziti/desktop-edge-win/service/ziti-tunnel/config"
 	"github.com/openziti/desktop-edge-win/service/ziti-tunnel/util/logging"
+	"github.com/openziti/desktop-edge-win/service/ziti-tunnel/util/recovery"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/debug"
 )
@@ -42,6 +43,7 @@ func (m *zitiService) Execute(args []string, r <-chan svc.ChangeRequest, changes
 	control := make(chan string)
 	mainLoop := make(chan struct{})
 	go func() {
+		defer recovery.TunnelPanic()
 		err := SubMain(control, changes)
 		if err != nil {
 			log.Errorf("the main loop exited with an unexpected error: %v", err)
