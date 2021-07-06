@@ -30,9 +30,14 @@ namespace ZitiDesktopEdge.ServiceClient {
         public const int EXPECTED_API_VERSION = 1;
 
         public event EventHandler<MonitorServiceStatusEvent> OnServiceStatusEvent;
+        public event EventHandler<InstallationNotificationEvent> OnNotificationEvent;
 
         protected virtual void ServiceStatusEvent(MonitorServiceStatusEvent e) {
             OnServiceStatusEvent?.Invoke(this, e);
+        }
+
+        protected virtual void InstallationNotificationEvent(InstallationNotificationEvent e) {
+            OnNotificationEvent?.Invoke(this, e);
         }
 
         public MonitorClient() : base() {
@@ -56,7 +61,17 @@ namespace ZitiDesktopEdge.ServiceClient {
         protected override void ProcessLine(string line) {
             var jsonReader = new JsonTextReader(new StringReader(line));
             MonitorServiceStatusEvent evt = serializer.Deserialize<MonitorServiceStatusEvent>(jsonReader);
-            ServiceStatusEvent(evt);
+            switch(evt.Type)
+            {
+                case "Notification":
+                    jsonReader = new JsonTextReader(new StringReader(line));
+                    InstallationNotificationEvent instEvt = serializer.Deserialize<InstallationNotificationEvent>(jsonReader);
+                    InstallationNotificationEvent(instEvt);
+                    break;
+                default:
+                    ServiceStatusEvent(evt);
+                    break;
+            }
         }
 
         async internal Task<string> SendServiceFunctionAsync(object toSend) {

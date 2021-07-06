@@ -1118,7 +1118,7 @@ func Clean(src *Id) dto.Identity {
 		mfaEnabled = src.CId.MfaEnabled
 	}
 
-	log.Tracef("cleaning identity: %s", src.Name, mfaNeeded, mfaEnabled)
+	log.Tracef("cleaning identity: %s %t %t", src.Name, mfaNeeded, mfaEnabled)
 	AddMetrics(src)
 	nid := dto.Identity{
 		Name:              src.Name,

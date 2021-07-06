@@ -212,6 +212,9 @@
                 <Label Name="AddIdButton" Padding="0,0,0,20" Grid.Column="0" Margin="0,0,0,20" Content="Add Identity" FontFamily="pack://application:,,,/Assets/Fonts/#Open Sans" Foreground="#0069FF" FontSize="16" Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center" MouseDown="AddIdentity"></Label>
             </Grid>
         </StackPanel>
+        <Canvas x:Name="AlertCanvas" ClipToBounds="False" Visibility="Collapsed">
+            <Image Source="/Assets/Images/UpdateWarn.png" Canvas.Left="50" Canvas.Top="32" Width="14" Height="14"></Image>
+        </Canvas>
         <!-- Form for debugging -->
         <debug:Debugging x:Name="DebugForm" Visibility="Collapsed" />
         <!-- Menu UI -->

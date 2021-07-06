@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 using System.Windows.Interop;
 
 using NLog;
+using Windows.ApplicationModel.Activation;
+using Microsoft.Toolkit.Uwp.Notifications;
+using ZitiDesktopEdge.ServiceClient;
 
 namespace ZitiDesktopEdge {
     /// <summary>

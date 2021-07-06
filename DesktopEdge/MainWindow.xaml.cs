@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Animation;
 using System.Web;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 using ZitiDesktopEdge.Models;
 using ZitiDesktopEdge.DataStructures;
@@ -24,6 +25,8 @@ using NLog.Targets;
 using Microsoft.Win32;
 
 using System.Windows.Interop;
+using Windows.UI.Notifications;
+using Windows.Data.Xml.Dom;
 
 namespace ZitiDesktopEdge {
 
@@ -42,7 +45,9 @@ namespace ZitiDesktopEdge {
 		private int _right = 75;
 		private int _left = 75;
 		private int _top = 30;
+		public bool IsUpdateAvailable = false;
 		private double _maxHeight = 800d;
+		public string CurrentIcon = "white";
 		private string[] suffixes = { "Bps", "kBps", "mBps", "gBps", "tBps", "pBps" };
 
 		private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
@@ -508,6 +513,7 @@ namespace ZitiDesktopEdge {
 
 			monitorClient = new MonitorClient();
 			monitorClient.OnClientConnected += MonitorClient_OnClientConnected;
+			monitorClient.OnNotificationEvent += MonitorClient_OnInstallationNotificationEvent;
             monitorClient.OnServiceStatusEvent += MonitorClient_OnServiceStatusEvent;
             monitorClient.OnShutdownEvent += MonitorClient_OnShutdownEvent;
             monitorClient.OnReconnectFailure += MonitorClient_OnReconnectFailure;
@@ -637,6 +643,27 @@ namespace ZitiDesktopEdge {
 			} catch (Exception ex) {
 				logger.Warn(ex, "unexpected exception in MonitorClient_OnShutdownEvent? {0}", ex.Message);
 			}
+		}
+
+		private void MonitorClient_OnInstallationNotificationEvent(object sender, InstallationNotificationEvent evt) {
+			logger.Debug("MonitorClient_OnInstallationNotificationEvent: {0}", evt.Message);
+
+			if ("installationupdate".Equals(evt.Message?.ToLower())) {
+				logger.Debug("Installation Update is available - {0}", evt.ZDEVersion);
+				IsUpdateAvailable = true;
+				MainMenu.ShowUpdateAvailable(evt.TimeRemaining, evt.InstallTime);
+				AlertCanvas.Visibility = Visibility.Visible;
+				ShowToast("An Update is Available for Ziti Desktop Edge");
+				SetNotifyIcon("");
+				// display a tag in UI and a button for the update software
+			}
+		}
+
+		private void ShowToast(string message) {
+			new ToastContentBuilder()
+				.AddText("Important Notice")
+				.AddText(message)
+				.Show();
 		}
 
 		async private Task WaitForServiceToStop(DateTime until) {
@@ -977,7 +1004,8 @@ namespace ZitiDesktopEdge {
 			identities.Add(zid);
 		}
 		private void SetNotifyIcon(string iconPrefix) {
-			var iconUri = new Uri("pack://application:,,/Assets/Images/ziti-" + iconPrefix + ".ico");
+			if (iconPrefix != "") CurrentIcon = iconPrefix;
+			var iconUri = new Uri("pack://application:,,/Assets/Images/ziti-" + CurrentIcon + ((IsUpdateAvailable)?"-update":"")+".ico");
 			Stream iconStream = Application.GetResourceStream(iconUri).Stream;
 			notifyIcon.Icon = new Icon(iconStream);
 
@@ -1136,6 +1164,7 @@ namespace ZitiDesktopEdge {
 		}
 
 		private void ShowMenu(object sender, MouseButtonEventArgs e) {
+			ShowToast("An Update is Available for Ziti Desktop Edge");
 			MainMenu.Visibility = Visibility.Visible;
 		}
 

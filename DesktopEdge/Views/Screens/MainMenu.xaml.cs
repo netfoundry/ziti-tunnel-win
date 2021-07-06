@@ -42,6 +42,14 @@ namespace ZitiDesktopEdge {
 			}
 		}
 
+		public void ShowUpdateAvailable(double timeLeft, DateTime updateTime) {
+			ForceUpdate.Visibility = Visibility.Visible;
+			if (timeLeft>0) {
+				UpdateTimeLeft.Visibility = Visibility.Visible;
+				UpdateTimeLeft.Content = "Update will occur "+updateTime.ToString("g");
+			}
+		}
+
 		internal MainWindow MainWindow { get; set; }
 
 		public MainMenu() {
@@ -513,6 +521,7 @@ namespace ZitiDesktopEdge {
 					break;
 				}
 			}
+			AddDnsNew.IsChecked = (bool)Application.Current.Properties["dnsenabled"];
 			EditArea.Opacity = 0;
 			EditArea.Visibility = Visibility.Visible;
 			EditArea.Margin = new Thickness(0, 0, 0, 0);

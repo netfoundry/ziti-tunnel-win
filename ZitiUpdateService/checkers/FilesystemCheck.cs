@@ -26,8 +26,9 @@ namespace ZitiUpdateService.Checkers {
 			return "Ziti Desktop Edge Client-1.3.0.exe";
 		}
 
-		override public int IsUpdateAvailable(Version current) {
-			return isUpdateAvailable;
+		override public void IsUpdateAvailable(Version current, out int avail, out string publishedDate) {
+			avail = isUpdateAvailable;
+			publishedDate = File.GetCreationTime(dest).ToString();
 		}
 
 		override public bool HashIsValid(string destinationFolder, string destinationName) {
@@ -36,6 +37,10 @@ namespace ZitiUpdateService.Checkers {
 
 		override public Version GetNextVersion() {
 			throw new NotImplementedException();
+		}
+
+		override public ZDEInstallerInfo GetZDEInstallerInfo(string fileDestination) {
+			return new ZDEInstallerInfo() { IsCritical = true, TimeRemaining = 60 };
 		}
 	}
 }
