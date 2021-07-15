@@ -1063,11 +1063,13 @@ namespace ZitiDesktopEdge {
 				if (isConnected) {
 					ConnectButton.Visibility = Visibility.Collapsed;
 					DisconnectButton.Visibility = Visibility.Visible;
+					ConnectTitle.Content = "Tap to Disconnect";
 				} else {
 					ConnectButton.Visibility = Visibility.Visible;
 					DisconnectButton.Visibility = Visibility.Collapsed;
 					IdentityMenu.Visibility = Visibility.Collapsed;
 					MainMenu.Visibility = Visibility.Collapsed;
+					ConnectTitle.Content = "Tap to Connect";
 					HideBlurb();
 				}
 			});

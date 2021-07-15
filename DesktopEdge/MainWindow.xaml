@@ -143,7 +143,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Stretch" Margin="0,12" MouseDown="Window_MouseDown">
                     <Image Source="/Assets/Images/z.png" Height="40" RenderOptions.BitmapScalingMode="Fant"></Image>
-                    <Label Content="Tap to Connect" MouseDoubleClick="Label_MouseDoubleClick" Margin="0,-3,0,0" FontFamily="pack://application:,,,/Assets/Fonts/#Russo One" FontSize="14" Foreground="White" HorizontalAlignment="Center"></Label>
+                    <Label Name="ConnectTitle" Content="Tap to Connect" MouseDoubleClick="Label_MouseDoubleClick" Margin="0,-3,0,0" FontFamily="pack://application:,,,/Assets/Fonts/#Russo One" FontSize="14" Foreground="White" HorizontalAlignment="Center"></Label>
                 </StackPanel>
                 <StackPanel x:Name="AddIdAreaButton" Grid.Column="2" Cursor="Hand" Orientation="Vertical" Margin="14,16,14,14" MouseLeftButtonUp="AddIdentity">
                     <Image Source="/Assets/Images/identity.png" Margin="0,0,5,-4" Width="26" Height="26" HorizontalAlignment="Right"></Image>
